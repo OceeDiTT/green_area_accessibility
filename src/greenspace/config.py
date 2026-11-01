@@ -36,6 +36,8 @@ class Sources:
     income: list = field(default_factory=lambda: ["renda-disponible-llars-bcn"])
     register: list = field(default_factory=lambda: ["culturailleure-parcsjardins"])
     official_polygons: list = field(default_factory=list)
+    # Overpass servers tried in rotation when one is busy (osmnx base URLs)
+    overpass_endpoints: list = field(default_factory=lambda: ["https://overpass-api.de/api", "https://overpass.kumi.systems/api"])
 
 
 @dataclass
@@ -71,6 +73,7 @@ class Sampling:
     method: str = "buildings"          # "buildings" (footprint-weighted) | "grid"
     grid_step_m: float = 50
     min_building_m2: float = 40
+    allow_grid_fallback: bool = False   # if building footprints cannot be fetched: fail (False) or use a uniform grid (True, less accurate)
 
 
 @dataclass

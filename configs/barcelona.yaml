@@ -11,6 +11,9 @@ sources:
   population: ["pad_mdbas", "pad_mdbas_sexe"]
   income: ["renda-disponible-llars-bcn"]
   register: ["culturailleure-parcsjardins"]        # official park register (points) - QA cross-check
+  overpass_endpoints:                              # tried in rotation, with exponential back-off, when busy
+    - https://overpass-api.de/api
+    - https://overpass.kumi.systems/api
   official_polygons:                                # official green-space polygons (GeoPackage)
     - label: public_green_over_half_ha
       package: espais-verds-publics
@@ -45,6 +48,7 @@ sampling:
   method: buildings
   grid_step_m: 50
   min_building_m2: 40
+  allow_grid_fallback: false          # true = keep going with a uniform grid if building footprints are unavailable (less accurate)
 
 equity:
   low_income_index: 75

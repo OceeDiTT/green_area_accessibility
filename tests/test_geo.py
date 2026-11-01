@@ -9,7 +9,7 @@ from shapely.geometry import GeometryCollection, LineString, Point, box  # noqa:
 
 from greenspace.geo import polygonal  # noqa: E402
 from greenspace.green import build_green, register_match_rate  # noqa: E402
-from greenspace.metrics import proximity_shares, unit_metrics  # noqa: E402
+from greenspace.metrics import proximity_shares, sample_points, unit_metrics  # noqa: E402
 from helpers import make_cfg  # noqa: E402
 
 CRS = "EPSG:25831"
@@ -76,3 +76,34 @@ def test_unit_metrics_basics():
     assert b.loc[0, "green_m2"] == pytest.approx(5000) and b.loc[0, "green_cover_pct"] == pytest.approx(50)
     assert b.loc[1, "green_m2"] == 0
     assert b["rfd_index"].tolist() == pytest.approx([50, 150]) and b["low_income"].tolist() == [True, False]
+
+
+def _units():
+    return gpd.GeoDataFrame({"barri_code": [1], "barri": ["A"], "district": ["D"]}, geometry=[box(0, 0, 1000, 1000)], crs=CRS)
+
+
+def _boom():
+    raise ConnectionError("502 Bad Gateway")
+
+
+def test_grid_sampling_builds_and_excludes_parks():
+    cfg = make_cfg(sampling={"method": "grid", "grid_step_m": 100})
+    pts, method = sample_points(_units(), box(0, 0, 100, 100), cfg, _boom)
+    assert method == "grid" and len(pts) == 99                     # 10 x 10 grid minus the cell inside the park
+    assert (pts["w"] == 1.0).all() and (pts["barri_code"] == 1).all()
+
+
+def test_building_failure_is_an_error_unless_fallback_allowed():
+    strict = make_cfg(sampling={"method": "buildings", "grid_step_m": 100})
+    with pytest.raises(RuntimeError):
+        sample_points(_units(), box(0, 0, 100, 100), strict, _boom)
+    lenient = make_cfg(sampling={"method": "buildings", "grid_step_m": 100, "allow_grid_fallback": True})
+    pts, method = sample_points(_units(), box(0, 0, 100, 100), lenient, _boom)
+    assert method == "grid" and len(pts) == 99
+
+
+def test_building_sampling_uses_footprint_weights():
+    cfg = make_cfg()
+    blds = gpd.GeoDataFrame({"w": [100.0, 300.0, 50.0]}, geometry=[Point(500, 500), Point(600, 600), Point(50, 50)], crs=CRS)
+    pts, method = sample_points(_units(), box(0, 0, 100, 100), cfg, lambda: blds)
+    assert method == "buildings" and sorted(pts["w"]) == [100.0, 300.0]       # the building inside the park is dropped

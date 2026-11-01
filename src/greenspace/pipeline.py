@@ -94,6 +94,7 @@ def run_pipeline(cfg: CityConfig, data_dir="data", refresh: bool = False, force:
         with _step(timings, "population"):
             pop = adapter.load_population(client, cfg, prov, target_year=prov["income"].get("reference_year"))
 
+        osm.configure(cfg.sources.overpass_endpoints)
         city_poly = unary(units.geometry)
         qpoly = osm.query_polygon(units, cfg.city.crs_wgs84)
 

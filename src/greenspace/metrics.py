@@ -42,13 +42,18 @@ def sample_points(units, green_union, cfg: CityConfig, buildings_loader):
         try:
             pts = buildings_loader().to_crs(units.crs)
         except Exception as e:
-            log.warning("buildings unavailable (%s: %s) - falling back to grid sampling", type(e).__name__, e)
+            reason = (str(e).strip().splitlines() or [""])[0][:200]
+            if not cfg.sampling.allow_grid_fallback:
+                raise RuntimeError(
+                    f"Building footprints unavailable ({type(e).__name__}: {reason}). Retry later, or set "
+                    "sampling.allow_grid_fallback: true (uniform grid, less accurate) in the config.") from e
+            log.warning("buildings unavailable (%s: %s) - using grid sampling (allow_grid_fallback)", type(e).__name__, reason)
             method = "grid"
     if pts is None:
         step = cfg.sampling.grid_step_m
         minx, miny, maxx, maxy = units.total_bounds
         xx, yy = np.meshgrid(np.arange(minx + step / 2, maxx, step), np.arange(miny + step / 2, maxy, step))
-        pts = gpd.GeoDataFrame({"w": 1.0}, geometry=gpd.points_from_xy(xx.ravel(), yy.ravel()), crs=units.crs)
+        pts = gpd.GeoDataFrame({"w": np.ones(xx.size)}, geometry=gpd.points_from_xy(xx.ravel(), yy.ravel()), crs=units.crs)
     pts = gpd.sjoin(pts[["w", "geometry"]], units[["barri_code", "geometry"]], predicate="within", how="inner")
     pts = pts.drop(columns="index_right")
     inside_green = shapely.intersects(np.asarray(pts.geometry.values), green_union)    # nobody lives inside a park

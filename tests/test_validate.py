@@ -69,3 +69,11 @@ def test_rank_drift_detected():
     prev["access_rank"] = len(prev) + 1 - prev["access_rank"]          # completely reversed ranking
     assert _status(run_checks(df, _ctx(), cfg, previous=prev), "rank_drift") == "warn"
     assert _status(run_checks(df, _ctx(), cfg, previous=df[["barri_code", "access_rank"]]), "rank_drift") == "pass"
+
+
+def test_grid_fallback_is_flagged():
+    cfg = make_cfg()
+    df = _fit_population(make_scored(cfg=cfg), cfg)
+    df["green_m2"] = df["area_m2"] * 0.1
+    assert _status(run_checks(df, _ctx(points_method="grid"), cfg), "sampling_method") == "warn"
+    assert _status(run_checks(df, _ctx(points_method="buildings"), cfg), "sampling_method") == "pass"

@@ -75,6 +75,10 @@ def run_checks(df: pd.DataFrame, ctx: dict, cfg: CityConfig, previous: pd.DataFr
         add("official_polygons", float(ctx.get("official_km2", 0)) > 0,
             f"official polygon layers contribute {ctx.get('official_km2', 0):.2f} km²", warn_only=True)
 
+    pm = ctx.get("points_method")
+    add("sampling_method", pm in (None, cfg.sampling.method),
+        f"residents located with '{pm}' (configured: '{cfg.sampling.method}')", warn_only=True)
+
     npts = int(ctx.get("n_points", 0))
     add("sample_points", npts >= v.min_sample_points,
         f"{npts:,} resident sample points ({ctx.get('points_method', '?')})", warn_only=True)
