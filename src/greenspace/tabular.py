@@ -68,3 +68,19 @@ def latest_by_unit(df, code_col, value_col, year_col=None, agg="sum"):
              .groupby("barri_code", as_index=False)["_v"].agg(agg))
     out["barri_code"] = out["barri_code"].astype("int64")
     return out, year
+
+
+def filter_features(df, layers=None, where=None, exclude=None):
+    """Attribute / layer filters for official polygon layers (names and values compared accent/case-insensitively)."""
+    out = df
+    if layers:
+        if "_layer" not in out.columns:
+            raise KeyError("a 'layers' filter was configured but the file has no layer information")
+        out = out[out["_layer"].map(norm).isin({norm(x) for x in layers})]
+    for col, vals in (where or {}).items():
+        c = find_col(out, [norm(col)])
+        out = out[out[c].astype(str).map(norm).isin({norm(v) for v in vals})]
+    for col, vals in (exclude or {}).items():
+        c = find_col(out, [norm(col)])
+        out = out[~out[c].astype(str).map(norm).isin({norm(v) for v in vals})]
+    return out

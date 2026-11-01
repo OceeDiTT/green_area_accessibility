@@ -26,6 +26,9 @@ class OfficialPolygonSource:
     label: str = ""
     package: str = ""
     formats: list = field(default_factory=lambda: ["gpkg"])
+    layers: list = field(default_factory=list)      # keep only these GeoPackage layers (empty = all polygon layers)
+    where: dict = field(default_factory=dict)       # keep features whose column value is in the list   {column: [values]}
+    exclude: dict = field(default_factory=dict)     # drop features whose column value is in the list   {column: [values]}
 
 
 @dataclass
@@ -101,6 +104,7 @@ class Validation:
     min_register_match: float = 0.80
     max_mean_rank_shift: float = 8.0
     min_sample_points: int = 20_000
+    max_unit_cover_pct: float = 70       # a barri above this is flagged (Montjuïc may legitimately be high)
 
 
 @dataclass

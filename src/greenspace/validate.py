@@ -54,6 +54,12 @@ def run_checks(df: pd.DataFrame, ctx: dict, cfg: CityConfig, previous: pd.DataFr
     add("city_green_cover", clo <= city_cover <= chi, f"{city_cover:.1f}% (expected {clo}-{chi}%)")
     add("unit_cover_bounds", bool(df["green_cover_pct"].between(0, 100.0001).all()), "per-unit coverage within 0-100%")
 
+    hi = df[df["green_cover_pct"] > v.max_unit_cover_pct].sort_values("green_cover_pct", ascending=False)
+    add("unit_cover_plausible", hi.empty,
+        f"{len(hi)} units above {v.max_unit_cover_pct:.0f}% green cover: "
+        + ", ".join(f"{n} ({c:.0f}%)" for n, c in zip(hi["barri"].head(8), hi["green_cover_pct"].head(8)))
+        + " - check the green sources (a layer may contain non-green polygons)", warn_only=True)
+
     s = df["access_score"]
     add("score_valid", bool(s.notna().all() and s.between(0, 100).all()), "scores present and within 0-100")
 

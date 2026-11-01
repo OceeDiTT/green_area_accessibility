@@ -87,3 +87,14 @@ def test_units_without_points_are_named():
     detail = {c.name: c for c in checks}
     assert detail["units_with_points"].status == "warn" and "Montjuïc" in detail["units_with_points"].detail
     assert detail["units_grid_filled"].status == "warn" and "Marina" in detail["units_grid_filled"].detail
+
+
+def test_implausible_unit_cover_is_flagged_by_name():
+    cfg = make_cfg()
+    df = _fit_population(make_scored(cfg=cfg), cfg)
+    df["green_m2"] = df["area_m2"] * 0.1
+    df["green_cover_pct"] = 10.0
+    df.loc[0, "green_cover_pct"] = 99.6
+    df.loc[0, "barri"] = "el Barri Gòtic"
+    c = {x.name: x for x in run_checks(df, _ctx(), cfg)}["unit_cover_plausible"]
+    assert c.status == "warn" and "el Barri Gòtic (100%)" in c.detail

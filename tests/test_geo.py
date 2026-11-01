@@ -119,3 +119,14 @@ def test_units_without_buildings_are_filled_with_grid_points():
     assert (pts.loc[pts["src"] == "building", "barri_code"] == 1).all()
     grid = pts[pts["src"] == "grid"]
     assert len(grid) == 4 and (grid["barri_code"] == 2).all() and (grid["w"] == 1.0).all()
+
+
+def test_inspect_report_counts_buildings_and_green_sources():
+    from greenspace.diagnose import unit_report
+    units = gpd.GeoDataFrame({"barri": ["Old Town"], "green_cover_pct": [10.0]}, geometry=[box(0, 0, 1000, 1000)], crs=CRS)
+    patches = _g(box(0, 0, 200, 200), box(800, 0, 1000, 200))             # city green layer (two patches)
+    osm = _g(box(0, 0, 200, 200))                                           # only the first one is in OSM
+    blds = gpd.GeoDataFrame({"w": [1.0] * 4}, geometry=[Point(100, 100), Point(900, 100), Point(500, 500), Point(600, 600)], crs=CRS)
+    r = unit_report(units, patches, blds, osm, ["old town"], grid_step=100).iloc[0]
+    assert r["buildings"] == 4 and r["in_green_layer"] == 2 and r["of_which_in_OSM_green"] == 1 and r["buildings_kept"] == 2
+    assert r["grid_points"] == 100 and r["grid_points_outside_green"] == 100 - 8      # two 2x2-cell patches

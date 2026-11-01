@@ -1,0 +1,134 @@
+2026-11-01T22:38:28 WARNING greenspace.sources.barcelona: skipping boundary resource 'BarcelonaCiutat_Barris.json': KeyError: 'geometry'
+
+====================================================================================================
+public_green_over_half_ha  |  package espais-verds-publics  |  file 2019_pev_parcs_od.gpkg
+====================================================================================================
+
+LAYER 'pev_parcs_od': 190 features, 190 polygons, 4.50 km2 inside the city
+  columns: ['cartodb_id', 'objectid', 'nom', 'municipi', 'tipus', 'area_ha', 'districte', 'codi', 'compacitat', 'mida', 'fet', 'ndvi', 'gestio', 'near_fores', 'districte_', 'id', 'id2', 'near_metro', 'near_bus', 'near_fcgc', 'near_renfe', 'near_tramv', 'rao_no_fet', 'near_mar', 'near_colls', 'fets_bcn_b', 'muni_codi', 'treball_am', 'codi_bcn_b', 'codi_1', 'modificat_', 'codi_vell', 'shape_leng', 'shape_area', 'codi_merge']
+  - cartodb_id: 190 distinct values (not listed)
+  - objectid: 190 distinct values (not listed)
+  - nom: 190 distinct values (not listed)
+  - municipi:
+        Barcelona                                                       182 polygons     4.49 km2 in city
+        l'Hospitalet de Llobregat                                         4 polygons     0.00 km2 in city
+        Sant Adrià de Besòs                                               2 polygons     0.00 km2 in city
+        El Prat de Llobregat                                              1 polygons     0.00 km2 in city
+        Santa Coloma de Gramanet                                          1 polygons     0.00 km2 in city
+  - tipus:
+        Parc                                                            137 polygons     3.38 km2 in city
+        Parc Històric                                                    14 polygons     0.84 km2 in city
+        Plaça                                                            30 polygons     0.22 km2 in city
+        Interior illa                                                     9 polygons     0.06 km2 in city
+  - area_ha: 190 distinct values (not listed)
+  - districte:
+        Sants-Montjuïc                                                   36 polygons     0.83 km2 in city
+        Sant Martí                                                       28 polygons     0.75 km2 in city
+        Nou Barris                                                       18 polygons     0.50 km2 in city
+        Horta-Guinardó                                                   21 polygons     0.44 km2 in city
+        Sarrià - Sant Gervasi                                            18 polygons     0.36 km2 in city
+        Sarria-Sant Gervasi                                               5 polygons     0.34 km2 in city
+        Corts                                                            17 polygons     0.29 km2 in city
+        Gracia                                                            3 polygons     0.23 km2 in city
+        Sant Andreu                                                      16 polygons     0.22 km2 in city
+        Ciutat Vella                                                      4 polygons     0.22 km2 in city
+        Eixample                                                         11 polygons     0.20 km2 in city
+        Sants-Montjuic                                                    3 polygons     0.07 km2 in city
+        SarriaGervasi                                                     1 polygons     0.01 km2 in city
+        Graçia                                                            1 polygons     0.01 km2 in city
+  - codi: 190 distinct values (not listed)
+  - compacitat: 190 distinct values (not listed)
+  - mida:
+        >= 2 Ha                                                          57 polygons     3.21 km2 in city
+        1 - 2 Ha                                                         49 polygons     0.67 km2 in city
+        0.5 - 1 Ha                                                       84 polygons     0.61 km2 in city
+  - fet:
+        1                                                               190 polygons     4.50 km2 in city
+  - ndvi:
+        0.0                                                             190 polygons     4.50 km2 in city
+  - gestio:
+        AMB                                                               5 polygons     0.06 km2 in city
+  - near_fores: 130 distinct values (not listed)
+  - districte_:
+        HIS                                                              14 polygons     0.84 km2 in city
+        SMO                                                              35 polygons     0.82 km2 in city
+        SMA                                                              28 polygons     0.75 km2 in city
+        NBA                                                              18 polygons     0.50 km2 in city
+        HOR                                                              20 polygons     0.41 km2 in city
+        SAG                                                              18 polygons     0.36 km2 in city
+        COR                                                              17 polygons     0.29 km2 in city
+        SAN                                                              16 polygons     0.22 km2 in city
+        EIX                                                              10 polygons     0.20 km2 in city
+        CVE                                                               3 polygons     0.06 km2 in city
+        GRA                                                               3 polygons     0.04 km2 in city
+        HOS                                                               4 polygons     0.00 km2 in city
+        SAD                                                               2 polygons     0.00 km2 in city
+        PRA                                                               1 polygons     0.00 km2 in city
+        SCO                                                               1 polygons     0.00 km2 in city
+  - id: 49 distinct values (not listed)
+  - id2: 49 distinct values (not listed)
+  - near_metro: 179 distinct values (not listed)
+  - near_bus: 176 distinct values (not listed)
+  - near_fcgc: 189 distinct values (not listed)
+  - near_renfe: 183 distinct values (not listed)
+  - near_tramv: 190 distinct values (not listed)
+  - rao_no_fet:
+        Privat                                                            1 polygons     0.04 km2 in city
+        Obres                                                             1 polygons     0.01 km2 in city
+  - near_mar: 63 distinct values (not listed)
+  - near_colls: 185 distinct values (not listed)
+  - fets_bcn_b:
+        SI                                                              190 polygons     4.50 km2 in city
+  - muni_codi:
+        HIS                                                              14 polygons     0.84 km2 in city
+        SMO                                                              35 polygons     0.82 km2 in city
+        SMA                                                              28 polygons     0.75 km2 in city
+        NBA                                                              18 polygons     0.50 km2 in city
+        HOR                                                              20 polygons     0.41 km2 in city
+        SAG                                                              18 polygons     0.36 km2 in city
+        COR                                                              17 polygons     0.29 km2 in city
+        SAN                                                              16 polygons     0.22 km2 in city
+        EIX                                                              10 polygons     0.20 km2 in city
+        CVE                                                               3 polygons     0.06 km2 in city
+        GRA                                                               3 polygons     0.04 km2 in city
+        HOS                                                               4 polygons     0.00 km2 in city
+        SAD                                                               2 polygons     0.00 km2 in city
+        PRA                                                               1 polygons     0.00 km2 in city
+        SCO                                                               1 polygons     0.00 km2 in city
+  - treball_am:
+        SI                                                               59 polygons     3.25 km2 in city
+        NO                                                              131 polygons     1.25 km2 in city
+  - codi_bcn_b: 190 distinct values (not listed)
+  - codi_1: 187 distinct values (not listed)
+  - modificat_:
+        si                                                                1 polygons     0.00 km2 in city
+  - codi_vell: 190 distinct values (not listed)
+  - shape_leng: 190 distinct values (not listed)
+  - shape_area: 190 distinct values (not listed)
+  - codi_merge: 190 distinct values (not listed)
+
+====================================================================================================
+urban_green_spaces  |  package afectacions-turistiques-a-espais-verds  |  file 2021_espais_gran_afluencia.gpkg
+====================================================================================================
+
+LAYER '2021_espais_gran_afluencia': 15 features, 15 polygons, 14.23 km2 inside the city
+  columns: ['NOM_EGA', 'prioritat']
+  - NOM_EGA:
+        MONTJUIC                                                          1 polygons     3.85 km2 in city
+        LA RAMBLA                                                         1 polygons     1.25 km2 in city
+        LA BARCELONETA                                                    1 polygons     1.15 km2 in city
+        FRONT LITORAL                                                     1 polygons     1.15 km2 in city
+        SANT PERE SANTA CATERINA I LA RIBERA                              1 polygons     1.10 km2 in city
+        FORUM                                                             1 polygons     1.07 km2 in city
+        PL CATALUNYA_PG GRACIA                                            1 polygons     1.01 km2 in city
+        CAMPNOU                                                           1 polygons     0.77 km2 in city
+        GLORIES                                                           1 polygons     0.72 km2 in city
+        SAGRADA FAMILIA                                                   1 polygons     0.53 km2 in city
+        PARC GUELL                                                        1 polygons     0.48 km2 in city
+        RAMBLA POBLENOU                                                   1 polygons     0.41 km2 in city
+        EL BARRI GOTIC                                                    1 polygons     0.28 km2 in city
+        TURÃ“ DE LA ROVIRA                                                1 polygons     0.24 km2 in city
+        MERCAT SANT ANTONI                                                1 polygons     0.22 km2 in city
+  - prioritat:
+        1                                                                 9 polygons    10.03 km2 in city
+        0                                                                 6 polygons     4.20 km2 in city

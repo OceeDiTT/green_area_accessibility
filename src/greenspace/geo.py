@@ -50,11 +50,13 @@ def read_geo_bytes(raw: bytes, workdir: Path, default_crs: str, fallback_project
             import pyogrio
             for name, gtype in pyogrio.list_layers(str(path)):
                 if gtype and "polygon" in str(gtype).lower():
-                    frames.append(gpd.read_file(path, layer=name))
+                    f = gpd.read_file(path, layer=name)
+                    f["_layer"] = name
+                    frames.append(f)
         except Exception as e:                                              # older pyogrio / odd file
             log.warning("layer listing failed (%s); reading default layer", e)
         if not frames:
-            frames = [gpd.read_file(path)]
+            frames = [gpd.read_file(path).assign(_layer="default")]
         crs = frames[0].crs
         frames = [f.to_crs(crs) if f.crs is not None and crs is not None else f for f in frames]
         g = gpd.GeoDataFrame(pd.concat(frames, ignore_index=True), crs=crs)

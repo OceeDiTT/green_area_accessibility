@@ -41,3 +41,10 @@ def test_official_requires_sources():
 def test_missing_file():
     with pytest.raises(ConfigError):
         load_config("/nonexistent.yaml")
+
+
+def test_official_source_filters_are_parsed():
+    c = make_cfg(sources={"official_polygons": [{"label": "a", "package": "p", "layers": ["parcs"],
+                                                   "where": {"TIPUS": ["Parc"]}, "exclude": {"X": ["y"]}}]})
+    o = c.sources.official_polygons[0]
+    assert o.layers == ["parcs"] and o.where == {"TIPUS": ["Parc"]} and o.exclude == {"X": ["y"]}

@@ -1,4 +1,4 @@
-"""Command line: greenspace run | schedule | status | check-config | serve"""
+"""Command line: greenspace run | schedule | status | inspect | explore-official | check-config | serve"""
 import argparse
 import json
 import logging
@@ -68,6 +68,22 @@ def cmd_check_config(args) -> int:
     return 0
 
 
+def cmd_inspect(args) -> int:
+    from .diagnose import inspect_units
+    df = inspect_units(_cfg(args), args.data_dir, args.unit)
+    if df.empty:
+        print(f"No unit name contains any of {args.unit}")
+        return 1
+    print(df.to_string(index=False))
+    return 0
+
+
+def cmd_explore_official(args) -> int:
+    from .diagnose import explore_official
+    explore_official(_cfg(args), args.data_dir)
+    return 0
+
+
 def cmd_serve(args) -> int:
     import uvicorn
     uvicorn.run("greenspace.api.app:app", host=args.host, port=args.port, log_level="info")
@@ -95,6 +111,13 @@ def main(argv=None) -> int:
     p = sub.add_parser("status", help="show the live run")
     common(p)
     p.set_defaults(fn=cmd_status)
+    p = sub.add_parser("inspect", help="diagnose units: buildings vs green layer coverage (offline)")
+    common(p)
+    p.add_argument("--unit", action="append", required=True, help="part of a barri name; repeat for several")
+    p.set_defaults(fn=cmd_inspect)
+    p = sub.add_parser("explore-official", help="show layers / columns / categories inside the official polygon files")
+    common(p)
+    p.set_defaults(fn=cmd_explore_official)
     p = sub.add_parser("check-config", help="validate a config file")
     p.add_argument("--config", default=DEFAULT_CONFIG)
     p.set_defaults(fn=cmd_check_config)

@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from greenspace.tabular import find_col, latest_by_unit, norm, pick_resource, year_of
+from greenspace.tabular import filter_features, find_col, latest_by_unit, norm, pick_resource, year_of
 
 
 def _res():
@@ -43,3 +43,24 @@ def test_latest_by_unit_filters_to_latest_year_and_aggregates():
                        "Codi_Barri": [1, 1, 2, 2, 1, 1, 2, 2], "Valor": [10, 20, 30, 40, 1, 2, 3, 4]})
     out, year = latest_by_unit(df, "Codi_Barri", "Valor", "Data_Referencia", agg="sum")
     assert year == 2024 and out["_v"].tolist() == [3, 7] and out["barri_code"].tolist() == [1, 2]
+
+
+def _feat():
+    return pd.DataFrame({"_layer": ["parcs", "parcs", "illes", "illes", "illes"],
+                         "TIPUS": ["Parc històric", "Plaça verda", "Illa", "Interior d'illa", "Illa"], "id": range(5)})
+
+
+def test_filter_by_layer_and_category_is_accent_and_case_insensitive():
+    f = _feat()
+    assert filter_features(f, layers=["PARCS"])["id"].tolist() == [0, 1]
+    assert filter_features(f, where={"tipus": ["parc historic", "placa verda"]})["id"].tolist() == [0, 1]
+    assert filter_features(f, exclude={"TIPUS": ["illa"]})["id"].tolist() == [0, 1, 3]
+    assert filter_features(f, layers=["illes"], where={"TIPUS": ["Interior d'illa"]})["id"].tolist() == [3]
+    assert len(filter_features(f)) == 5
+
+
+def test_filter_unknown_column_or_missing_layer_info_is_an_error():
+    with pytest.raises(KeyError):
+        filter_features(_feat(), where={"nope": ["x"]})
+    with pytest.raises(KeyError):
+        filter_features(_feat().drop(columns="_layer"), layers=["parcs"])

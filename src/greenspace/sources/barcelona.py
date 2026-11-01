@@ -9,7 +9,7 @@ from ..ckan import CkanClient
 from ..config import CityConfig
 from ..geo import read_geo_bytes, valid
 from ..http import download_bytes
-from ..tabular import find_col, latest_by_unit, norm
+from ..tabular import filter_features, find_col, latest_by_unit, norm
 
 log = logging.getLogger(__name__)
 
@@ -97,9 +97,14 @@ def load_official_polygons(client: CkanClient, cfg: CityConfig, workdir: Path, p
             pkg = client.resolve_package([src.package], src.label)
             row = client.pick(pkg, tuple(src.formats))
             g = read_geo_bytes(download_bytes(row["url"], client.session), workdir, cfg.city.crs_wgs84, cfg.city.crs_proj)
-            g = g[g.geom_type.isin(["Polygon", "MultiPolygon"])][["geometry"]]
+            g = g[g.geom_type.isin(["Polygon", "MultiPolygon"])]
+            n_raw = int(len(g))
+            g = filter_features(g, src.layers, src.where, src.exclude)[["geometry"]]
             out[src.label] = valid(g.to_crs(cfg.city.crs_proj)).reset_index(drop=True)
-            info[src.label] = {"package": pkg, "resource": row["name"], "url": row["url"], "n_polygons": int(len(g))}
+            log.info("official layer '%s': kept %d of %d polygons (layers=%s where=%s exclude=%s)",
+                     src.label, len(g), n_raw, src.layers or "all", src.where or "-", src.exclude or "-")
+            info[src.label] = {"package": pkg, "resource": row["name"], "url": row["url"], "polygons_in_file": n_raw,
+                               "polygons_kept": int(len(g)), "filters": {"layers": src.layers, "where": src.where, "exclude": src.exclude}}
         except Exception as e:
             log.warning("official layer '%s' skipped: %s: %s", src.label, type(e).__name__, e)
             info[src.label] = {"error": f"{type(e).__name__}: {e}"}
