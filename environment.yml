@@ -1,0 +1,20 @@
+name: greenspace
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - geopandas>=1.0
+  - shapely>=2.0
+  - pyproj
+  - pyogrio
+  - pandas>=2.2
+  - numpy
+  - scipy
+  - mapclassify
+  - osmnx
+  - matplotlib
+  - requests
+  - contextily
+  - folium
+  - jupyterlab
+  - ipykernel
