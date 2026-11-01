@@ -145,7 +145,11 @@ def run_pipeline(cfg: CityConfig, data_dir="data", refresh: bool = False, force:
             prox = proximity_shares(pts, green.patches, cfg)
             b = b.merge(prox, on="barri_code", how="left")
             b[["share_300m_05ha", "share_1km_5ha"]] = b[["share_300m_05ha", "share_1km_5ha"]].fillna(0)
-        prov["resident_sampling"] = {"method": method, "points": int(len(pts))}
+        name_of = dict(zip(b["barri_code"], b["barri"]))
+        grid_filled = sorted(name_of[c] for c in set(pts.loc[pts["src"] == "grid", "barri_code"])) if method == "buildings" else []
+        no_points = sorted(name_of[c] for c in set(b["barri_code"]) - set(pts["barri_code"]))
+        prov["resident_sampling"] = {"method": method, "points": int(len(pts)), "grid_filled_units": grid_filled,
+                                     "units_without_points": no_points}
 
         with _step(timings, "scoring"):
             b = score_frame(b, cfg)
@@ -159,7 +163,7 @@ def run_pipeline(cfg: CityConfig, data_dir="data", refresh: bool = False, force:
                    "exclusion_zone_found": green.report["exclusion_zone_found"],
                    "official_km2": green.report["official_km2"],
                    "n_points": len(pts), "points_method": method,
-                   "units_without_points": int(len(set(b["barri_code"]) - set(pts["barri_code"])))}
+                   "units_without_points": no_points, "units_grid_filled": grid_filled}
             checks = run_checks(b, ctx, cfg, previous=store.load_table())
         for c in checks:
             if c.status != "pass":

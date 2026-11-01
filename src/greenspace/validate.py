@@ -82,8 +82,14 @@ def run_checks(df: pd.DataFrame, ctx: dict, cfg: CityConfig, previous: pd.DataFr
     npts = int(ctx.get("n_points", 0))
     add("sample_points", npts >= v.min_sample_points,
         f"{npts:,} resident sample points ({ctx.get('points_method', '?')})", warn_only=True)
-    zero = int(ctx.get("units_without_points", 0))
-    add("units_with_points", zero == 0, f"{zero} units without any sample point", warn_only=True)
+    no_pts = list(ctx.get("units_without_points") or [])
+    add("units_with_points", not no_pts,
+        f"{len(no_pts)} units without any resident sample point (their proximity shares are 0): {', '.join(no_pts[:8])}",
+        warn_only=True)
+    filled = list(ctx.get("units_grid_filled") or [])
+    add("units_grid_filled", not filled,
+        f"{len(filled)} units had no building footprints; residents sampled on a grid there: {', '.join(filled[:8])}",
+        warn_only=True)
 
     if previous is not None and {"barri_code", "access_rank"} <= set(previous.columns):
         m = df[["barri_code", "access_rank"]].merge(previous[["barri_code", "access_rank"]], on="barri_code",

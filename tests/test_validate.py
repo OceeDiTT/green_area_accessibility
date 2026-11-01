@@ -4,7 +4,7 @@ from helpers import make_cfg, make_scored
 
 def _ctx(**kw):
     base = dict(population_year=2024, income_year=2023, register_match_rate=0.95, exclusion_zone_found=True,
-                official_km2=5.0, n_points=100_000, points_method="buildings", units_without_points=0)
+                official_km2=5.0, n_points=100_000, points_method="buildings", units_without_points=[], units_grid_filled=[])
     base.update(kw)
     return base
 
@@ -77,3 +77,13 @@ def test_grid_fallback_is_flagged():
     df["green_m2"] = df["area_m2"] * 0.1
     assert _status(run_checks(df, _ctx(points_method="grid"), cfg), "sampling_method") == "warn"
     assert _status(run_checks(df, _ctx(points_method="buildings"), cfg), "sampling_method") == "pass"
+
+
+def test_units_without_points_are_named():
+    cfg = make_cfg()
+    df = _fit_population(make_scored(cfg=cfg), cfg)
+    df["green_m2"] = df["area_m2"] * 0.1
+    checks = run_checks(df, _ctx(units_without_points=["Montjuïc"], units_grid_filled=["la Marina del Prat Vermell"]), cfg)
+    detail = {c.name: c for c in checks}
+    assert detail["units_with_points"].status == "warn" and "Montjuïc" in detail["units_with_points"].detail
+    assert detail["units_grid_filled"].status == "warn" and "Marina" in detail["units_grid_filled"].detail

@@ -107,3 +107,15 @@ def test_building_sampling_uses_footprint_weights():
     blds = gpd.GeoDataFrame({"w": [100.0, 300.0, 50.0]}, geometry=[Point(500, 500), Point(600, 600), Point(50, 50)], crs=CRS)
     pts, method = sample_points(_units(), box(0, 0, 100, 100), cfg, lambda: blds)
     assert method == "buildings" and sorted(pts["w"]) == [100.0, 300.0]       # the building inside the park is dropped
+
+
+def test_units_without_buildings_are_filled_with_grid_points():
+    cfg = make_cfg(sampling={"method": "buildings", "grid_step_m": 500})
+    units = gpd.GeoDataFrame({"barri_code": [1, 2], "barri": ["A", "B"], "district": ["D", "D"]},
+                             geometry=[box(0, 0, 1000, 1000), box(1000, 0, 2000, 1000)], crs=CRS)
+    blds = gpd.GeoDataFrame({"w": [100.0, 200.0]}, geometry=[Point(300, 300), Point(700, 700)], crs=CRS)   # only in unit A
+    pts, method = sample_points(units, box(5000, 5000, 5001, 5001), cfg, lambda: blds)
+    assert method == "buildings" and set(pts["barri_code"]) == {1, 2}
+    assert (pts.loc[pts["src"] == "building", "barri_code"] == 1).all()
+    grid = pts[pts["src"] == "grid"]
+    assert len(grid) == 4 and (grid["barri_code"] == 2).all() and (grid["w"] == 1.0).all()

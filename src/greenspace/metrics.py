@@ -34,13 +34,32 @@ def unit_metrics(units, pop, inc, green_union, stations, cfg: CityConfig) -> gpd
     return b
 
 
+def _grid_points(units, step: float) -> gpd.GeoDataFrame:
+    minx, miny, maxx, maxy = units.total_bounds
+    xx, yy = np.meshgrid(np.arange(minx + step / 2, maxx, step), np.arange(miny + step / 2, maxy, step))
+    return gpd.GeoDataFrame({"w": np.ones(xx.size)}, geometry=gpd.points_from_xy(xx.ravel(), yy.ravel()), crs=units.crs)
+
+
+def _locate(pts, units, green_union):
+    """Assign points to units; nobody lives inside a park."""
+    pts = gpd.sjoin(pts[["w", "geometry"]], units[["barri_code", "geometry"]], predicate="within", how="inner")
+    pts = pts.drop(columns="index_right")
+    inside_green = shapely.intersects(np.asarray(pts.geometry.values), green_union)
+    return pts[~inside_green].reset_index(drop=True)
+
+
 def sample_points(units, green_union, cfg: CityConfig, buildings_loader):
-    """Where do residents live? Building centroids weighted by footprint; falls back to a regular grid."""
+    """Where do residents live? Building centroids weighted by footprint (column src='building').
+
+    Units that end up with no building point (data gaps, or buildings only inside parks) are filled with a regular
+    grid *for those units only* (src='grid') instead of being scored as if nobody could reach any green space.
+    """
     method = cfg.sampling.method
-    pts = None
+    step = cfg.sampling.grid_step_m
+    raw = None
     if method == "buildings":
         try:
-            pts = buildings_loader().to_crs(units.crs)
+            raw = buildings_loader().to_crs(units.crs)
         except Exception as e:
             reason = (str(e).strip().splitlines() or [""])[0][:200]
             if not cfg.sampling.allow_grid_fallback:
@@ -49,15 +68,19 @@ def sample_points(units, green_union, cfg: CityConfig, buildings_loader):
                     "sampling.allow_grid_fallback: true (uniform grid, less accurate) in the config.") from e
             log.warning("buildings unavailable (%s: %s) - using grid sampling (allow_grid_fallback)", type(e).__name__, reason)
             method = "grid"
-    if pts is None:
-        step = cfg.sampling.grid_step_m
-        minx, miny, maxx, maxy = units.total_bounds
-        xx, yy = np.meshgrid(np.arange(minx + step / 2, maxx, step), np.arange(miny + step / 2, maxy, step))
-        pts = gpd.GeoDataFrame({"w": np.ones(xx.size)}, geometry=gpd.points_from_xy(xx.ravel(), yy.ravel()), crs=units.crs)
-    pts = gpd.sjoin(pts[["w", "geometry"]], units[["barri_code", "geometry"]], predicate="within", how="inner")
-    pts = pts.drop(columns="index_right")
-    inside_green = shapely.intersects(np.asarray(pts.geometry.values), green_union)    # nobody lives inside a park
-    return pts[~inside_green].reset_index(drop=True), method
+    if raw is None:
+        pts = _locate(_grid_points(units, step), units, green_union)
+        pts["src"] = "grid"
+        return pts, method
+    pts = _locate(raw, units, green_union)
+    pts["src"] = "building"
+    missing = sorted(set(units["barri_code"]) - set(pts["barri_code"]))
+    if missing:
+        fill = _locate(_grid_points(units[units["barri_code"].isin(missing)], step), units[units["barri_code"].isin(missing)], green_union)
+        fill["src"] = "grid"
+        log.warning("%d unit(s) have no building footprints - using grid points there: %s", len(missing), missing)
+        pts = gpd.GeoDataFrame(pd.concat([pts, fill], ignore_index=True), crs=units.crs)
+    return pts, method
 
 
 def _reach(points, patches, min_area, dist):
