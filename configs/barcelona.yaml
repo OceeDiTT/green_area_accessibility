@@ -1,0 +1,75 @@
+# Barcelona configuration (decisions approved by the project owner are marked APPROVED)
+city:
+  name: Barcelona
+  slug: barcelona
+  adapter: barcelona_ckan
+  crs_proj: "EPSG:25831"            # ETRS89 / UTM 31N - metric CRS for all area & distance work
+
+sources:
+  ckan_base: https://opendata-ajuntament.barcelona.cat/data/api/3/action
+  boundaries: ["20170706-districtes-barris"]
+  population: ["pad_mdbas", "pad_mdbas_sexe"]
+  income: ["renda-disponible-llars-bcn"]
+  register: ["culturailleure-parcsjardins"]        # official park register (points) - QA cross-check
+  official_polygons:                                # official green-space polygons (GeoPackage)
+    - label: public_green_over_half_ha
+      package: espais-verds-publics
+      formats: [gpkg]
+    - label: urban_green_spaces
+      package: afectacions-turistiques-a-espais-verds
+      formats: [gpkg]
+
+green:                                              # APPROVED: parks = hybrid of OSM + the city's register
+  use_osm: true
+  use_official: true
+  osm_tags:
+    leisure: [park, garden, playground, common, recreation_ground]
+    landuse: [grass, recreation_ground, village_green, meadow]
+  min_green_m2: 100
+  register_tolerance_m: 50
+  exclusion:                                        # APPROVED: Collserola forest is NOT green space
+    required: true                                  # fail the run if the exclusion zone cannot be found
+    name_patterns: [collserola]
+    osm_tags:
+      boundary: [protected_area]
+      leisure: [nature_reserve]
+
+standards:                                          # APPROVED
+  near_dist_m: 300
+  near_min_m2: 5000
+  large_dist_m: 1000
+  large_min_m2: 50000
+  who_target_m2_pp: 9
+
+sampling:
+  method: buildings
+  grid_step_m: 50
+  min_building_m2: 40
+
+equity:
+  low_income_index: 75
+
+scoring:                                            # APPROVED weights (normalised to sum to 1)
+  weights:
+    c_percapita: 0.30
+    c_prox300: 0.35
+    c_large1km: 0.15
+    c_coverage: 0.20
+  priority_weights:
+    access_need: 0.50
+    density: 0.25
+    income_need: 0.25
+
+validation:
+  n_units: 73                                       # APPROVED: analysis stays at barri level
+  population_range: [1400000, 1900000]
+  city_green_cover_pct_range: [3, 40]
+  max_year_gap: 2
+  min_register_match: 0.80
+  max_mean_rank_shift: 8
+  min_sample_points: 20000
+
+runtime:
+  cache_max_age_days: 30
+  keep_runs: 6
+  schedule_every_days: 30

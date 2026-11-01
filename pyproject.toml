@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "greenspace"
+version = "0.1.0"
+description = "Urban green space accessibility scoring, ranking and publishing pipeline (Barcelona first)."
+requires-python = ">=3.10"
+dependencies = ["pandas>=2.2", "numpy>=1.26", "pyyaml>=6", "requests>=2.31"]
+
+[project.optional-dependencies]
+pipeline  = ["geopandas>=1.0", "shapely>=2.0", "pyproj>=3.6", "pyogrio>=0.7", "osmnx>=1.9"]
+api       = ["fastapi>=0.110", "uvicorn[standard]>=0.29"]
+dashboard = ["streamlit>=1.35", "plotly>=5.24"]
+dev       = ["pytest>=8", "httpx>=0.27", "ruff>=0.4"]
+
+[project.scripts]
+greenspace = "greenspace.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"

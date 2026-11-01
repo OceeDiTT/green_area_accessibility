@@ -1,0 +1,37 @@
+name: greenspace
+
+services:
+  api:
+    build: { context: ., target: api }
+    ports: ["8000:8000"]
+    environment:
+      GREENSPACE_DATA_DIR: /data
+      GREENSPACE_CITY: barcelona
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+    volumes: ["greenspace_data:/data:ro"]          # the API can never modify published data
+    restart: unless-stopped
+
+  dashboard:
+    build: { context: ., target: dashboard }
+    ports: ["8501:8501"]
+    environment:
+      API_URL: http://api:8000
+    depends_on: { api: { condition: service_healthy } }
+    restart: unless-stopped
+
+  # One-off job:   docker compose --profile jobs run --rm pipeline
+  pipeline:
+    profiles: ["jobs"]
+    build: { context: ., target: pipeline }
+    volumes: ["greenspace_data:/data"]
+
+  # Optional: keeps data fresh   docker compose --profile scheduler up -d scheduler
+  scheduler:
+    profiles: ["scheduler"]
+    build: { context: ., target: pipeline }
+    command: ["greenspace", "schedule"]
+    volumes: ["greenspace_data:/data"]
+    restart: unless-stopped
+
+volumes:
+  greenspace_data:

@@ -1,0 +1,78 @@
+"""Geospatial logic on tiny synthetic geometries (metres). Skipped unless the 'pipeline' extra is installed."""
+import pytest
+
+pytest.importorskip("geopandas")
+pytest.importorskip("shapely")
+import geopandas as gpd  # noqa: E402
+import shapely  # noqa: E402
+from shapely.geometry import GeometryCollection, LineString, Point, box  # noqa: E402
+
+from greenspace.geo import polygonal  # noqa: E402
+from greenspace.green import build_green, register_match_rate  # noqa: E402
+from greenspace.metrics import proximity_shares, unit_metrics  # noqa: E402
+from helpers import make_cfg  # noqa: E402
+
+CRS = "EPSG:25831"
+
+
+def _g(*geoms):
+    return gpd.GeoDataFrame(geometry=list(geoms), crs=CRS)
+
+
+def test_polygonal_drops_lines():
+    gc = GeometryCollection([LineString([(0, 0), (1, 1)]), box(0, 0, 2, 2)])
+    assert polygonal(gc).area == 4 and polygonal(LineString([(0, 0), (1, 1)])).is_empty
+
+
+def test_hybrid_union_has_no_double_counting_and_exclusion_removes_area():
+    city = box(0, 0, 200, 100)
+    osm = _g(box(0, 0, 100, 100))
+    official = {"a": _g(box(50, 0, 150, 100))}          # overlaps OSM by half
+    excl = _g(box(120, 0, 200, 100))                    # the "Collserola" zone
+    r = build_green(osm, official, excl, city, 100, CRS)
+    rep = r.report
+    assert rep["osm_km2"] == pytest.approx(0.01) and rep["official_km2"] == pytest.approx(0.01)
+    assert rep["combined_before_exclusion_km2"] == pytest.approx(0.015)        # 150 x 100, overlap counted once
+    assert rep["excluded_km2"] == pytest.approx(0.003)                         # 30 x 100 removed
+    assert rep["final_km2"] == pytest.approx(0.012)
+    assert rep["official_share_also_in_osm"] == pytest.approx(0.5)
+    assert rep["exclusion_zone_found"] and not r.union.intersects(box(121, 1, 199, 99))
+
+
+def test_without_exclusion_zone_is_reported():
+    r = build_green(_g(box(0, 0, 100, 100)), {}, None, box(0, 0, 200, 100), 100, CRS)
+    assert not r.report["exclusion_zone_found"] and r.report["final_km2"] == pytest.approx(0.01)
+
+
+def test_slivers_dropped():
+    r = build_green(_g(box(0, 0, 100, 100), box(150, 0, 155, 5)), {}, None, box(0, 0, 200, 100), 100, CRS)
+    assert len(r.patches) == 1
+
+
+def test_register_match_rate():
+    union = box(0, 0, 100, 100)
+    pts = _g(Point(10, 10), Point(500, 500))
+    assert register_match_rate(pts, union, 50) == pytest.approx(0.5)
+    assert register_match_rate(None, union, 50) is None
+
+
+def test_proximity_shares():
+    cfg = make_cfg()
+    patches = _g(box(0, 0, 100, 100))
+    patches["area_m2"] = patches.geometry.area                     # 10,000 m2: counts as >=0.5 ha, not as >=5 ha
+    pts = gpd.GeoDataFrame({"w": [1.0, 1.0], "barri_code": [1, 1]}, geometry=[Point(50, 250), Point(900, 900)], crs=CRS)
+    out = proximity_shares(pts, patches, cfg).iloc[0]
+    assert out["share_300m_05ha"] == pytest.approx(0.5) and out["share_1km_5ha"] == 0
+
+
+def test_unit_metrics_basics():
+    cfg = make_cfg()
+    units = gpd.GeoDataFrame({"barri_code": [1, 2], "barri": ["A", "B"], "district": ["D", "D"]},
+                             geometry=[box(0, 0, 100, 100), box(100, 0, 200, 100)], crs=CRS)
+    import pandas as pd
+    pop = pd.DataFrame({"barri_code": [1, 2], "population": [1000.0, 1000.0]})
+    inc = pd.DataFrame({"barri_code": [1, 2], "income_eur_pc": [10000.0, 30000.0]})
+    b = unit_metrics(units, pop, inc, box(0, 0, 50, 100), None, cfg)
+    assert b.loc[0, "green_m2"] == pytest.approx(5000) and b.loc[0, "green_cover_pct"] == pytest.approx(50)
+    assert b.loc[1, "green_m2"] == 0
+    assert b["rfd_index"].tolist() == pytest.approx([50, 150]) and b["low_income"].tolist() == [True, False]
