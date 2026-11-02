@@ -5,7 +5,9 @@
 | First deployment | `docker compose --profile jobs run --rm pipeline`, then `docker compose up -d api dashboard`. `/ready` returns 503 until a run is published |
 | `greenspace run` exits with code 2 | Run was rejected. Read `data/runs/barcelona/<id>.failed/checks.json` (and `error.txt` for crashes). The previous run stays live |
 | Check `exclusion_zone` failed | Overpass did not return the Collserola park. Re-run later (or `--refresh`). Do **not** disable `green.exclusion.required` just to publish |
-| Check `register_match` warns | OSM + official layers miss many registered parks. Inspect `green_layer`; consider enabling the second official layer |
+| Check `unit_cover_sane` fails / `unit_cover_plausible` warns | A barri is implausibly green (> 90 % rejects the run). A green source contains non-green polygons: run `greenspace explore-official`, look at categories and areas, and add `layers` / `where` / `exclude` filters or remove the source |
+| Adding a new green source | 1) `greenspace explore-official` to see layers, columns, categories and area; 2) add it with filters; 3) run; 4) review the ten greenest and ten least green barris before trusting it |
+| Check `register_match` warns | OSM + official layers miss many registered parks. Inspect `green_layer` (OSM-only vs official-only km²) |
 | Check `rank_drift` warns | Ranking moved a lot since the last run. Compare the two `barris.csv` files; expected after a data refresh, suspicious otherwise |
 | Overpass 502 / timeouts | Built in: 5 attempts with exponential back-off (20 s, 40 s, ...) rotating through `sources.overpass_endpoints`. If it still fails, just re-run later: parks and the exclusion zone are cached, so a re-run only repeats what failed. `--refresh` forces new downloads |
 | Check `units_grid_filled` / `units_with_points` warns | Some barris have no usable OSM building footprints (data gap, or buildings only inside parks). Those units are sampled on a grid instead (named in the warning) so they are not scored as having zero access; if a unit still has no points its proximity shares are 0. Check the named units on the map before quoting their ranks |

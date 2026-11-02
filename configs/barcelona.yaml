@@ -15,12 +15,14 @@ sources:
     - https://overpass-api.de/api
     - https://overpass.kumi.systems/api
   official_polygons:                                # official green-space polygons (GeoPackage)
-    - label: public_green_over_half_ha
+    - label: public_green_over_half_ha              # "Public green spaces larger than 0.5 ha": parks, historic parks, squares, block interiors
       package: espais-verds-publics
       formats: [gpkg]
-    - label: urban_green_spaces
-      package: afectacions-turistiques-a-espais-verds
-      formats: [gpkg]
+      name_contains: pev_parcs                      # pinned: the package/portal may add unrelated files
+      exclude:
+        rao_no_fet: [Privat, Obres]                 # private sites and works in progress are not usable green space
+    # NOT USED: package 'afectacions-turistiques-a-espais-verds' is a map of high-visitor-flow zones (La Rambla, Camp Nou...),
+    # not green space - it made the old town look 100% green.
 
 green:                                              # APPROVED: parks = hybrid of OSM + the city's register
   use_osm: true
@@ -72,6 +74,8 @@ validation:
   min_register_match: 0.80
   max_mean_rank_shift: 8
   min_sample_points: 20000
+  max_unit_cover_pct: 80                            # warn above this
+  reject_unit_cover_pct: 90                         # reject the run above this (data error)
 
 runtime:
   cache_max_age_days: 30

@@ -95,7 +95,7 @@ def load_official_polygons(client: CkanClient, cfg: CityConfig, workdir: Path, p
     for src in cfg.sources.official_polygons:
         try:
             pkg = client.resolve_package([src.package], src.label)
-            row = client.pick(pkg, tuple(src.formats))
+            row = client.pick(pkg, tuple(src.formats), name_contains=src.name_contains or None)
             g = read_geo_bytes(download_bytes(row["url"], client.session), workdir, cfg.city.crs_wgs84, cfg.city.crs_proj)
             g = g[g.geom_type.isin(["Polygon", "MultiPolygon"])]
             n_raw = int(len(g))

@@ -16,7 +16,9 @@ def test_shipped_barcelona_config_loads(tmp_path):
     import pathlib
     c = load_config(pathlib.Path(__file__).parent.parent / "configs" / "barcelona.yaml")
     assert c.city.slug == "barcelona" and c.green.use_osm and c.green.use_official
-    assert [o.label for o in c.sources.official_polygons] == ["public_green_over_half_ha", "urban_green_spaces"]
+    assert [o.label for o in c.sources.official_polygons] == ["public_green_over_half_ha"]
+    o = c.sources.official_polygons[0]
+    assert o.name_contains == "pev_parcs" and o.exclude == {"rao_no_fet": ["Privat", "Obres"]}
 
 
 def test_unknown_key_rejected():

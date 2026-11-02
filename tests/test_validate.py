@@ -98,3 +98,14 @@ def test_implausible_unit_cover_is_flagged_by_name():
     df.loc[0, "barri"] = "el Barri Gòtic"
     c = {x.name: x for x in run_checks(df, _ctx(), cfg)}["unit_cover_plausible"]
     assert c.status == "warn" and "el Barri Gòtic (100%)" in c.detail
+
+
+def test_absurd_unit_cover_rejects_the_run():
+    cfg = make_cfg()
+    df = _fit_population(make_scored(cfg=cfg), cfg)
+    df["green_m2"] = df["area_m2"] * 0.1
+    df["green_cover_pct"] = 10.0
+    df.loc[3, ["green_cover_pct", "barri"]] = [99.9, "Sant Pere"]
+    checks = run_checks(df, _ctx(), cfg)
+    assert has_failures(checks) and _status(checks, "unit_cover_sane") == "fail"
+    assert "Sant Pere (100%)" in next(c.detail for c in checks if c.name == "unit_cover_sane")

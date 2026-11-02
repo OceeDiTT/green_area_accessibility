@@ -77,7 +77,7 @@ def explore_official(cfg, data_dir, max_values: int = 25) -> None:
     city = unary(units.geometry)
     for src in cfg.sources.official_polygons:
         pkg = client.resolve_package([src.package], src.label)
-        row = client.pick(pkg, tuple(src.formats))
+        row = client.pick(pkg, tuple(src.formats), name_contains=src.name_contains or None)
         g = read_geo_bytes(download_bytes(row["url"], client.session), cache, cfg.city.crs_wgs84, cfg.city.crs_proj)
         g = g.to_crs(cfg.city.crs_proj).reset_index(drop=True)
         print(f"\n{'=' * 100}\n{src.label}  |  package {pkg}  |  file {row['name']}\n{'=' * 100}")
