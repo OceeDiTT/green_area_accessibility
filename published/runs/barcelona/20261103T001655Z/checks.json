@@ -1,0 +1,97 @@
+[
+  {
+    "name": "unit_count",
+    "status": "pass",
+    "detail": "73 units (expected 73)"
+  },
+  {
+    "name": "unique_codes",
+    "status": "pass",
+    "detail": "unit codes are unique"
+  },
+  {
+    "name": "population_complete",
+    "status": "pass",
+    "detail": "0 units without population"
+  },
+  {
+    "name": "population_total",
+    "status": "pass",
+    "detail": "total 1,660,435 (expected 1,400,000-1,900,000)"
+  },
+  {
+    "name": "income_coverage",
+    "status": "pass",
+    "detail": "0% of units without income"
+  },
+  {
+    "name": "reference_year_gap",
+    "status": "pass",
+    "detail": "population 2023 vs income 2023 (max gap 2)"
+  },
+  {
+    "name": "city_green_cover",
+    "status": "pass",
+    "detail": "10.4% (expected 3-40%)"
+  },
+  {
+    "name": "unit_cover_bounds",
+    "status": "pass",
+    "detail": "per-unit coverage within 0-100%"
+  },
+  {
+    "name": "unit_cover_sane",
+    "status": "pass",
+    "detail": "No barri above 90% green cover"
+  },
+  {
+    "name": "unit_cover_plausible",
+    "status": "pass",
+    "detail": "No barri above 80% green cover"
+  },
+  {
+    "name": "score_valid",
+    "status": "pass",
+    "detail": "scores present and within 0-100"
+  },
+  {
+    "name": "register_match",
+    "status": "pass",
+    "detail": "89% of registered parks are inside the hybrid green layer (min 80%)"
+  },
+  {
+    "name": "exclusion_zone",
+    "status": "pass",
+    "detail": "exclusion zone applied (collserola)"
+  },
+  {
+    "name": "official_polygons",
+    "status": "pass",
+    "detail": "official polygon layers contribute 4.45 km\u00b2"
+  },
+  {
+    "name": "sampling_method",
+    "status": "pass",
+    "detail": "residents located with 'buildings' (configured: 'buildings')"
+  },
+  {
+    "name": "sample_points",
+    "status": "pass",
+    "detail": "64,833 resident sample points (buildings)"
+  },
+  {
+    "name": "units_with_points",
+    "status": "pass",
+    "detail": "0 units without any resident sample point (their proximity shares are 0): "
+  },
+  {
+    "name": "units_grid_filled",
+    "status": "pass",
+    "detail": "0 units had no building footprints; residents sampled on a grid there: "
+  },
+  {
+    "name": "rank_drift",
+    "status": "pass",
+    "detail": "mean rank shift vs previous run 0.0 (max 0); limit 8"
+  }
+]

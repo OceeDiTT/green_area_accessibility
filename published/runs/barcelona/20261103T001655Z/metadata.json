@@ -1,0 +1,368 @@
+{
+  "run_id": "20261103T001655Z",
+  "city": "Barcelona",
+  "slug": "barcelona",
+  "software_version": "0.1.0",
+  "status": "published",
+  "started_utc": "2026-11-03T00:16:55+00:00",
+  "finished_utc": "2026-11-03T00:17:37+00:00",
+  "duration_s": 42.1,
+  "steps": [
+    {
+      "step": "boundaries",
+      "seconds": 7.0
+    },
+    {
+      "step": "income",
+      "seconds": 5.7
+    },
+    {
+      "step": "population",
+      "seconds": 6.0
+    },
+    {
+      "step": "osm_green",
+      "seconds": 0.2
+    },
+    {
+      "step": "official_green",
+      "seconds": 3.5
+    },
+    {
+      "step": "exclusion_zone",
+      "seconds": 0.0
+    },
+    {
+      "step": "green_layer",
+      "seconds": 5.8
+    },
+    {
+      "step": "register_crosscheck",
+      "seconds": 5.8
+    },
+    {
+      "step": "stations",
+      "seconds": 0.0
+    },
+    {
+      "step": "unit_metrics",
+      "seconds": 0.6
+    },
+    {
+      "step": "proximity",
+      "seconds": 6.9
+    },
+    {
+      "step": "scoring",
+      "seconds": 0.1
+    },
+    {
+      "step": "validation",
+      "seconds": 0.0
+    }
+  ],
+  "checks_summary": {
+    "pass": 19,
+    "warn": 0,
+    "fail": 0
+  },
+  "stats": {
+    "units": 73,
+    "population": 1660435,
+    "area_km2": 101.70228717786806,
+    "green_km2": 10.53165971220357,
+    "green_cover_pct": 10.355381382706422,
+    "green_m2_per_capita_city": 6.342711224590887,
+    "who_target_m2_pp": 9,
+    "units_below_who_target": 57,
+    "pop_share_below_who_target": 0.8654551367563319,
+    "pop_weighted_share_300m_05ha": 0.7402247277585273,
+    "estimated_residents_without_300m_access": 431340,
+    "mean_access_score_pop_weighted": 49.02691316130481,
+    "low_income_units": 16,
+    "units_near_natural_park": 8,
+    "population_near_natural_park": 62119,
+    "spearman_income_vs_green_per_capita": -0.06293965198074784,
+    "spearman_income_vs_access_score": -0.04081821547574972,
+    "median_rank_range90": 5.0,
+    "equity_by_income_quartile": [
+      {
+        "quartile": "Q1 (lowest income)",
+        "units": 19,
+        "population": 320987,
+        "median_green_m2_pp": 4.128334782352681,
+        "mean_green_cover_pct": 10.145481501786419,
+        "mean_access_score": 51.97806084422746
+      },
+      {
+        "quartile": "Q2",
+        "units": 18,
+        "population": 346269,
+        "median_green_m2_pp": 4.050805199429256,
+        "mean_green_cover_pct": 12.259542203083042,
+        "mean_access_score": 55.693069390672356
+      },
+      {
+        "quartile": "Q3",
+        "units": 18,
+        "population": 519141,
+        "median_green_m2_pp": 2.198402946746104,
+        "mean_green_cover_pct": 12.271504621397689,
+        "mean_access_score": 48.05762146845747
+      },
+      {
+        "quartile": "Q4 (highest income)",
+        "units": 18,
+        "population": 474038,
+        "median_green_m2_pp": 2.6522032884433604,
+        "mean_green_cover_pct": 9.717720617492912,
+        "mean_access_score": 43.22070303897558
+      }
+    ]
+  },
+  "green_layer": {
+    "osm_km2": 10.06133908662819,
+    "official_km2": 4.448928648100578,
+    "official_by_layer_km2": {
+      "public_green_over_half_ha": 4.448928648100579
+    },
+    "combined_before_exclusion_km2": 10.634664676745786,
+    "excluded_km2": 0.02651525075391703,
+    "final_km2": 10.531659181432438,
+    "patches": 2479,
+    "exclusion_zone_found": true,
+    "osm_only_km2": 6.185736029410494,
+    "official_only_km2": 0.5733255901174942,
+    "official_share_also_in_osm": 0.8711317632935403
+  },
+  "sources": {
+    "boundaries": {
+      "package": "20170706-districtes-barris",
+      "resource": "BarcelonaCiutat_Barris.csv",
+      "url": "https://opendata-ajuntament.barcelona.cat/data/dataset/808daafa-d9ce-48c0-925a-fa5afdb1ed41/resource/b21fa550-56ea-4f4c-9adc-b8009381896e/download"
+    },
+    "income": {
+      "package": "renda-disponible-llars-bcn",
+      "resource": "2023_renda_disponible_llars_per_persona.csv",
+      "url": "https://opendata-ajuntament.barcelona.cat/data/dataset/78db0c75-fa56-4604-9510-8b92834a7fd2/resource/f18e28ed-dcee-4904-b350-52088201a7a0/download/2023_renda_disponible_llars_per_persona.csv",
+      "value_column": "Import_Euros",
+      "reference_year": 2023
+    },
+    "population": {
+      "package": "pad_mdbas",
+      "resource": "2023_pad_mdbas.csv",
+      "url": "https://opendata-ajuntament.barcelona.cat/data/dataset/2f6e0561-30f4-44a0-8446-e27442d4754c/resource/f70020ae-c41a-438d-8983-a372628c197b/download",
+      "reference_year": 2023
+    },
+    "osm_green": {
+      "api": "Overpass (OpenStreetMap)",
+      "tags": {
+        "leisure": [
+          "park",
+          "garden",
+          "playground",
+          "common",
+          "recreation_ground"
+        ],
+        "landuse": [
+          "grass",
+          "recreation_ground",
+          "village_green",
+          "meadow"
+        ]
+      },
+      "licence": "ODbL"
+    },
+    "official_polygons": {
+      "public_green_over_half_ha": {
+        "package": "espais-verds-publics",
+        "resource": "2019_pev_parcs_od.gpkg",
+        "url": "https://opendata-ajuntament.barcelona.cat/data/dataset/eb3f3acc-e4e9-42b5-b41a-8e779b718a41/resource/83430f08-0626-4fb3-8695-db87da8eac07/download/pev_parcs_od.gpkg",
+        "polygons_in_file": 190,
+        "polygons_kept": 188,
+        "filters": {
+          "layers": [],
+          "where": {},
+          "exclude": {
+            "rao_no_fet": [
+              "Privat",
+              "Obres"
+            ]
+          }
+        }
+      }
+    },
+    "exclusion_zone": {
+      "patterns": [
+        "collserola"
+      ],
+      "features": [
+        "Parc Natural de Collserola"
+      ]
+    },
+    "register": {
+      "package": "culturailleure-parcsjardins",
+      "resource": "opendatabcn_cultura_parcs-i-jardins.csv",
+      "url": "https://opendata-ajuntament.barcelona.cat/data/dataset/5d43ed16-f93a-442f-8853-4bf2191b2d39/resource/b64d32a8-aea5-47a8-9826-479b211f5d46/download",
+      "n_points": 456
+    },
+    "stations": {
+      "api": "Overpass (OpenStreetMap)",
+      "tags": {
+        "railway": [
+          "station"
+        ]
+      }
+    },
+    "resident_sampling": {
+      "method": "buildings",
+      "points": 64833,
+      "grid_filled_units": [],
+      "units_without_points": []
+    }
+  },
+  "config": {
+    "city": {
+      "name": "Barcelona",
+      "slug": "barcelona",
+      "adapter": "barcelona_ckan",
+      "crs_proj": "EPSG:25831",
+      "crs_wgs84": "EPSG:4326"
+    },
+    "sources": {
+      "ckan_base": "https://opendata-ajuntament.barcelona.cat/data/api/3/action",
+      "boundaries": [
+        "20170706-districtes-barris"
+      ],
+      "population": [
+        "pad_mdbas",
+        "pad_mdbas_sexe"
+      ],
+      "income": [
+        "renda-disponible-llars-bcn"
+      ],
+      "register": [
+        "culturailleure-parcsjardins"
+      ],
+      "official_polygons": [
+        {
+          "label": "public_green_over_half_ha",
+          "package": "espais-verds-publics",
+          "formats": [
+            "gpkg"
+          ],
+          "name_contains": "pev_parcs",
+          "layers": [],
+          "where": {},
+          "exclude": {
+            "rao_no_fet": [
+              "Privat",
+              "Obres"
+            ]
+          }
+        }
+      ],
+      "overpass_endpoints": [
+        "https://overpass-api.de/api",
+        "https://overpass.kumi.systems/api"
+      ]
+    },
+    "green": {
+      "use_osm": true,
+      "use_official": true,
+      "osm_tags": {
+        "leisure": [
+          "park",
+          "garden",
+          "playground",
+          "common",
+          "recreation_ground"
+        ],
+        "landuse": [
+          "grass",
+          "recreation_ground",
+          "village_green",
+          "meadow"
+        ]
+      },
+      "min_green_m2": 100,
+      "register_tolerance_m": 50,
+      "exclusion": {
+        "required": true,
+        "name_patterns": [
+          "collserola"
+        ],
+        "osm_tags": {
+          "boundary": [
+            "protected_area"
+          ],
+          "leisure": [
+            "nature_reserve"
+          ]
+        },
+        "context_dist_m": 500,
+        "flag_share": 0.5
+      }
+    },
+    "standards": {
+      "near_dist_m": 300,
+      "near_min_m2": 5000,
+      "large_dist_m": 1000,
+      "large_min_m2": 50000,
+      "who_target_m2_pp": 9
+    },
+    "sampling": {
+      "method": "buildings",
+      "grid_step_m": 50,
+      "min_building_m2": 40,
+      "allow_grid_fallback": false
+    },
+    "equity": {
+      "low_income_index": 75
+    },
+    "scoring": {
+      "weights": {
+        "c_percapita": 0.3,
+        "c_prox300": 0.35,
+        "c_large1km": 0.15,
+        "c_coverage": 0.2
+      },
+      "priority_weights": {
+        "access_need": 0.5,
+        "density": 0.25,
+        "income_need": 0.25
+      },
+      "winsor_lo": 0.05,
+      "winsor_hi": 0.95,
+      "stability_draws": 2000,
+      "stability_concentration": 50,
+      "seed": 42
+    },
+    "validation": {
+      "n_units": 73,
+      "population_range": [
+        1400000,
+        1900000
+      ],
+      "city_green_cover_pct_range": [
+        3,
+        40
+      ],
+      "max_year_gap": 2,
+      "min_register_match": 0.8,
+      "max_mean_rank_shift": 8,
+      "min_sample_points": 20000,
+      "max_unit_cover_pct": 80,
+      "reject_unit_cover_pct": 90
+    },
+    "runtime": {
+      "cache_max_age_days": 30,
+      "keep_runs": 6,
+      "schedule_every_days": 30
+    }
+  },
+  "attribution": [
+    "Ajuntament de Barcelona - Open Data BCN (CC BY 4.0)",
+    "(c) OpenStreetMap contributors (ODbL)"
+  ]
+}
