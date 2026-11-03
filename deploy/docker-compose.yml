@@ -1,0 +1,66 @@
+# Production stack:  caddy (HTTPS) -> dashboard + api (read-only data) ; scheduler (monthly refresh) writes the data volume.
+# Run from the repository root:   docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
+name: greenspace
+
+x-hardening: &hardening
+  restart: unless-stopped
+  security_opt: ["no-new-privileges:true"]
+  cap_drop: ["ALL"]
+  logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
+
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [api, dashboard]
+    logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
+
+  api:
+    <<: *hardening
+    build: { context: .., target: api }
+    expose: ["8000"]
+    environment:
+      GREENSPACE_DATA_DIR: /data
+      GREENSPACE_CITY: barcelona
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+      API_ROOT_PATH: /api
+      EXPOSE_GREEN_LAYER: ${EXPOSE_GREEN_LAYER:-true}
+    volumes: ["greenspace_data:/data:ro"]            # the API can never modify published data
+    mem_limit: 512m
+
+  dashboard:
+    <<: *hardening
+    build: { context: .., target: dashboard }
+    expose: ["8501"]
+    environment:
+      API_URL: http://api:8000
+    depends_on: { api: { condition: service_healthy } }
+    mem_limit: 1g
+
+  # Keeps the data fresh: re-runs the pipeline when the live run is older than runtime.schedule_every_days (30).
+  # On a brand-new server it also performs the FIRST data load (about 10 minutes; the dashboard shows "no data yet" until then).
+  scheduler:
+    <<: *hardening
+    build: { context: .., target: pipeline }
+    command: ["greenspace", "schedule"]
+    volumes: ["greenspace_data:/data"]
+    mem_limit: ${PIPELINE_MEM_LIMIT:-4g}
+
+  # One-off manual run:  docker compose -f deploy/docker-compose.yml --env-file deploy/.env --profile jobs run --rm pipeline
+  pipeline:
+    profiles: ["jobs"]
+    build: { context: .., target: pipeline }
+    volumes: ["greenspace_data:/data"]
+    mem_limit: ${PIPELINE_MEM_LIMIT:-4g}
+
+volumes:
+  greenspace_data:
+  caddy_data:
+  caddy_config:

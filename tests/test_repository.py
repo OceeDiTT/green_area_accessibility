@@ -84,3 +84,35 @@ def test_picks_up_a_new_run_without_restart(tmp_path):
     time.sleep(1.1)                                           # run ids have 1-second resolution
     second = write_run(tmp_path, df=make_scored(seed=5))
     assert repo.meta()["run_id"] == second != first
+
+
+def test_natural_park_filter_and_old_runs_without_the_columns(tmp_path):
+    from greenspace.schema import EXPORT_COLS
+    from helpers import make_scored
+    repo = Repository(tmp_path, "barcelona")
+    write_run(tmp_path)
+    r = repo.list_barris(near_natural_park=True, limit=500)
+    assert r["total"] == 5 and all(i["near_natural_park"] for i in r["items"])
+    assert repo.list_barris(near_natural_park=False, limit=500)["total"] == 68
+    # a run published before the columns existed must still load
+    import time, pandas as pd
+    time.sleep(1.1)
+    rid = write_run(tmp_path, df=make_scored(seed=3))
+    p = tmp_path / "runs" / "barcelona" / rid / "barris.csv"
+    pd.read_csv(p).drop(columns=["natural_park_share", "near_natural_park"]).to_csv(p, index=False)
+    assert repo.list_barris(limit=3)["items"][0]["near_natural_park"] is False
+    assert set(EXPORT_COLS) <= set(repo.list_barris(limit=1)["items"][0])
+
+
+def test_data_age_days():
+    from datetime import datetime, timezone
+    from greenspace.api.repository import data_age_days
+    now = datetime(2026, 11, 11, 12, 0, tzinfo=timezone.utc)
+    assert data_age_days("2026-11-01T12:00:00+00:00", now) == 10.0
+    assert data_age_days("2026-11-01T12:00:00", now) == 10.0            # naive timestamps are UTC
+    assert data_age_days("2027-01-01T00:00:00+00:00", now) == 0.0        # clock skew never gives negative ages
+    assert data_age_days(None, now) is None and data_age_days("junk", now) is None
+
+
+def test_meta_reports_data_age(repo):
+    assert repo.meta()["data_age_days"] >= 0

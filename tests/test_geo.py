@@ -9,7 +9,7 @@ from shapely.geometry import GeometryCollection, LineString, Point, box  # noqa:
 
 from greenspace.geo import polygonal  # noqa: E402
 from greenspace.green import build_green, register_match_rate  # noqa: E402
-from greenspace.metrics import proximity_shares, sample_points, unit_metrics  # noqa: E402
+from greenspace.metrics import natural_park_shares, proximity_shares, sample_points, unit_metrics  # noqa: E402
 from helpers import make_cfg  # noqa: E402
 
 CRS = "EPSG:25831"
@@ -130,3 +130,12 @@ def test_inspect_report_counts_buildings_and_green_sources():
     r = unit_report(units, patches, blds, osm, ["old town"], grid_step=100).iloc[0]
     assert r["buildings"] == 4 and r["in_green_layer"] == 2 and r["of_which_in_OSM_green"] == 1 and r["buildings_kept"] == 2
     assert r["grid_points"] == 100 and r["grid_points_outside_green"] == 100 - 8      # two 2x2-cell patches
+
+
+def test_natural_park_share_is_weighted_and_uses_the_buffer():
+    park = _g(box(0, 0, 1000, 1000))
+    pts = gpd.GeoDataFrame({"w": [100.0, 300.0, 100.0], "barri_code": [1, 1, 2]},
+                           geometry=[Point(1400, 500), Point(3000, 500), Point(500, 500)], crs=CRS)    # 400 m away, far away, inside
+    out = natural_park_shares(pts, park, 500).set_index("barri_code")["natural_park_share"]
+    assert out[1] == pytest.approx(100 / 400) and out[2] == pytest.approx(1.0)
+    assert (natural_park_shares(pts, None, 500)["natural_park_share"] == 0).all()

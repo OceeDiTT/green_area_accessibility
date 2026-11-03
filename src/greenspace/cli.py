@@ -1,4 +1,4 @@
-"""Command line: greenspace run | schedule | status | inspect | explore-official | check-config | serve"""
+"""Command line: greenspace run | schedule | status | publish | inspect | explore-official | check-config | serve"""
 import argparse
 import json
 import logging
@@ -68,6 +68,13 @@ def cmd_check_config(args) -> int:
     return 0
 
 
+def cmd_publish(args) -> int:
+    from .publish import publish
+    cfg = _cfg(args)
+    print(json.dumps(publish(args.data_dir, args.dest, cfg.city.slug), indent=2))
+    return 0
+
+
 def cmd_inspect(args) -> int:
     from .diagnose import inspect_units
     df = inspect_units(_cfg(args), args.data_dir, args.unit)
@@ -111,6 +118,10 @@ def main(argv=None) -> int:
     p = sub.add_parser("status", help="show the live run")
     common(p)
     p.set_defaults(fn=cmd_status)
+    p = sub.add_parser("publish", help="export the live run into a small public snapshot (for git / free hosting)")
+    common(p)
+    p.add_argument("--dest", default="published")
+    p.set_defaults(fn=cmd_publish)
     p = sub.add_parser("inspect", help="diagnose units: buildings vs green layer coverage (offline)")
     common(p)
     p.add_argument("--unit", action="append", required=True, help="part of a barri name; repeat for several")

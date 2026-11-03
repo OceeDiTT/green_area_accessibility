@@ -60,3 +60,13 @@ def test_rank_stability_is_ordered_and_reproducible(cfg):
 def test_base_rank_sits_inside_stability_band(scored):
     inside = (scored["access_rank"] >= scored["rank_p05"] - 3) & (scored["access_rank"] <= scored["rank_p95"] + 3)
     assert inside.mean() > 0.95
+
+
+def test_natural_park_flag_is_context_only(cfg):
+    from greenspace.scoring import score_frame
+    df = make_frame()
+    a = score_frame(df, cfg)
+    b = score_frame(df.assign(natural_park_share=0.0), cfg)
+    assert int(a["near_natural_park"].sum()) == 5 and int(b["near_natural_park"].sum()) == 0
+    assert a["access_score"].equals(b["access_score"]) and a["access_rank"].equals(b["access_rank"])   # never changes the score
+    assert a["priority_rank"].equals(b["priority_rank"])

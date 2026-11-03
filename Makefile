@@ -1,4 +1,4 @@
-.PHONY: install test lint run status serve dashboard docker-build docker-run docker-up docker-down smoke
+.PHONY: prod-up prod-load prod-logs prod-status install test lint run status serve dashboard docker-build docker-run docker-up docker-down smoke
 install:        ## local dev install (needs a working geospatial stack; conda-forge recommended)
 	pip install -e ".[pipeline,api,dashboard,dev]"
 test:
@@ -23,3 +23,13 @@ docker-down:
 	docker compose down
 smoke:          ## quick API check
 	curl -fsS localhost:8000/ready && curl -fsS "localhost:8000/v1/ranking?limit=3" && echo
+
+PROD = docker compose -f deploy/docker-compose.yml --env-file deploy/.env
+prod-up:        ## build + start the production stack
+	$(PROD) up -d --build
+prod-load:      ## manual data refresh
+	$(PROD) --profile jobs run --rm pipeline
+prod-logs:
+	$(PROD) logs -f --tail=100
+prod-status:
+	$(PROD) ps

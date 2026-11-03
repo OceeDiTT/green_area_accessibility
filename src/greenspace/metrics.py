@@ -103,3 +103,15 @@ def proximity_shares(points, patches, cfg: CityConfig) -> pd.DataFrame:
         return (p[flag] * p["w"]).groupby(p["barri_code"]).sum() / tot
 
     return pd.DataFrame({"share_300m_05ha": share("near_small"), "share_1km_5ha": share("near_large")}).reset_index()
+
+
+def natural_park_shares(points, exclusion, dist_m: float) -> pd.DataFrame:
+    """Context indicator: share of each unit's residents within dist_m of the excluded natural park (e.g. Collserola)."""
+    if exclusion is None or len(exclusion) == 0:
+        return pd.DataFrame({"barri_code": sorted(points["barri_code"].unique()), "natural_park_share": 0.0})
+    buf = unary(exclusion.geometry).buffer(dist_m)
+    shapely.prepare(buf)
+    p = points.copy()
+    p["near"] = shapely.intersects(np.asarray(p.geometry.values), buf)
+    tot = p.groupby("barri_code")["w"].sum()
+    return ((p["near"] * p["w"]).groupby(p["barri_code"]).sum() / tot).rename("natural_park_share").reset_index()

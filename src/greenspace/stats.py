@@ -47,6 +47,8 @@ def city_stats(df: pd.DataFrame, cfg: CityConfig) -> dict:
         "estimated_residents_without_300m_access": int(round(no_access.sum())),
         "mean_access_score_pop_weighted": float(np.average(df["access_score"], weights=pop)),
         "low_income_units": int(df["low_income"].sum()),
+        "units_near_natural_park": int(df["near_natural_park"].sum()) if "near_natural_park" in df else 0,
+        "population_near_natural_park": int(df.loc[df["near_natural_park"], "population"].sum()) if "near_natural_park" in df else 0,
         "spearman_income_vs_green_per_capita": _spearman(df["rfd_index"], df["green_m2_pp"]),
         "spearman_income_vs_access_score": _spearman(df["rfd_index"], df["access_score"]),
         "median_rank_range90": float(df["rank_range90"].median()),

@@ -72,7 +72,7 @@ def run_pipeline(cfg: CityConfig, data_dir="data", refresh: bool = False, force:
     from .ckan import CkanClient
     from .geo import Cache, unary
     from .green import build_green, register_match_rate
-    from .metrics import proximity_shares, sample_points, unit_metrics
+    from .metrics import natural_park_shares, proximity_shares, sample_points, unit_metrics
     from .sources import osm
 
     adapter = importlib.import_module(ADAPTERS[cfg.city.adapter])
@@ -145,6 +145,8 @@ def run_pipeline(cfg: CityConfig, data_dir="data", refresh: bool = False, force:
             prox = proximity_shares(pts, green.patches, cfg)
             b = b.merge(prox, on="barri_code", how="left")
             b[["share_300m_05ha", "share_1km_5ha"]] = b[["share_300m_05ha", "share_1km_5ha"]].fillna(0)
+            b = b.merge(natural_park_shares(pts, excl, ex.context_dist_m), on="barri_code", how="left")
+            b["natural_park_share"] = b["natural_park_share"].fillna(0.0)
         name_of = dict(zip(b["barri_code"], b["barri"]))
         grid_filled = sorted(name_of[c] for c in set(pts.loc[pts["src"] == "grid", "barri_code"])) if method == "buildings" else []
         no_points = sorted(name_of[c] for c in set(b["barri_code"]) - set(pts["barri_code"]))

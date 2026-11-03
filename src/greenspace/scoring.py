@@ -62,6 +62,9 @@ def score_frame(df: pd.DataFrame, cfg: CityConfig) -> pd.DataFrame:
     out["priority_index"] = priority_index(out, out["access_score"], s.priority_weights)
     out["priority_rank"] = out["priority_index"].rank(ascending=False, method="min").astype(int)
     out["meets_who_target"] = out["green_m2_pp"] >= cfg.standards.who_target_m2_pp
+    # context only: does NOT enter the score. Residents next to an excluded natural park have a better real situation than the score shows.
+    share = out["natural_park_share"] if "natural_park_share" in out else pd.Series(0.0, index=out.index)
+    out["near_natural_park"] = share >= cfg.green.exclusion.flag_share
     stab = rank_stability(comp, s.weights, s.stability_draws, s.stability_concentration, s.seed)
     out = out.join(stab)
     out["rank_range90"] = out["rank_p95"] - out["rank_p05"]

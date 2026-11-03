@@ -9,13 +9,15 @@ Area Analysis (NOVA IMS, 2025).
 
 | Part | Status |
 |---|---|
-| Config, scoring, ranking, priority index, rank stability, validation gate, run store, scheduler, stats, API data layer, CLI (`check-config`, `status`) | **46 tests passed** (run in a sandbox with a pytest stand-in) |
-| Geospatial code (`geo`, `green`, `metrics`, `sources/*`), FastAPI app, dashboard, `pipeline.run_pipeline`, Docker images | **Compiled but NOT executed** — no network, geopandas or Docker were available when it was written |
-| `tests/test_geo.py`, `tests/test_api.py` | Written, **not yet run** (skipped without the extras). CI runs them. |
-| Live portal / Overpass calls | **Never run end to end.** The loaders are ports of the notebook cells you ran, but expect to fix small things on the first real run |
+| Pipeline on live data (Open Data BCN + Overpass), quality gate, API, dashboard | **Run end to end on a Windows/conda machine**; results sanity-checked (best/worst barris, Collserola edge) |
+| Unit and integration tests | **69 tests**, incl. geospatial and API tests (run with `pytest -q`) |
+| **Docker images and the production stack in `deploy/`** | **Not yet built or run** — do Step 1 of `docs/DEPLOYMENT.md` first |
+| Pipeline memory use, rate limiting, login | Not measured / not implemented (see `docs/DEPLOYMENT.md`, "Known gaps") |
 
-**First thing to do:** `pip install -e ".[pipeline,api,dev]" && pytest -q`, then `greenspace run`. The pipeline refuses to
-publish a run that fails its quality checks, so a bad first run cannot reach the API or dashboard.
+The pipeline refuses to publish a run that fails its quality checks, so a bad run cannot reach the API or dashboard.
+
+## Deploying
+**Free and cashless:** `docs/FREE_DEPLOYMENT.md` (GitHub Actions + Streamlit Community Cloud, no server). Server with Docker: **`docs/DEPLOYMENT.md`**: test the containers locally → rent a small VM + domain → `make prod-up` → monitoring, backups, legal checklist.
 
 ## Architecture
 

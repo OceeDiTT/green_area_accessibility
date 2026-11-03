@@ -56,15 +56,17 @@ def run_checks(df: pd.DataFrame, ctx: dict, cfg: CityConfig, previous: pd.DataFr
 
     absurd = df[df["green_cover_pct"] > v.reject_unit_cover_pct].sort_values("green_cover_pct", ascending=False)
     add("unit_cover_sane", absurd.empty,
+        f"No barri above {v.reject_unit_cover_pct:.0f}% green cover" if absurd.empty else
         f"{len(absurd)} units above {v.reject_unit_cover_pct:.0f}% green cover: "
         + ", ".join(f"{n} ({c:.0f}%)" for n, c in zip(absurd["barri"].head(8), absurd["green_cover_pct"].head(8)))
         + " - a green source almost certainly contains non-green polygons")
 
     hi = df[df["green_cover_pct"] > v.max_unit_cover_pct].sort_values("green_cover_pct", ascending=False)
     add("unit_cover_plausible", hi.empty,
+        f"No barri above {v.max_unit_cover_pct:.0f}% green cover" if hi.empty else
         f"{len(hi)} units above {v.max_unit_cover_pct:.0f}% green cover: "
         + ", ".join(f"{n} ({c:.0f}%)" for n, c in zip(hi["barri"].head(8), hi["green_cover_pct"].head(8)))
-        + " - check the green sources (a layer may contain non-green polygons)", warn_only=True)
+        + " - verify (large parks can explain this; otherwise a green source may contain non-green polygons)", warn_only=True)
 
     s = df["access_score"]
     add("score_valid", bool(s.notna().all() and s.between(0, 100).all()), "scores present and within 0-100")

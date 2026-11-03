@@ -5,15 +5,18 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from .. import __version__
-from .repository import NoRunAvailable, NotFound, Repository
+from .repository import NoRunAvailable, NotFound, Repository, data_age_days
 
 DATA_DIR = os.getenv("GREENSPACE_DATA_DIR", "data")
 CITY = os.getenv("GREENSPACE_CITY", "barcelona")
+ROOT_PATH = os.getenv("API_ROOT_PATH", "")                       # e.g. /api when served behind a reverse proxy under /api
+EXPOSE_GREEN_LAYER = os.getenv("EXPOSE_GREEN_LAYER", "true").lower() != "false"
 CORS = [o.strip() for o in os.getenv("CORS_ORIGINS", "*").split(",") if o.strip()]
 
 app = FastAPI(
     title="Green Space Accessibility API",
     version=__version__,
+    root_path=ROOT_PATH,
     description=("Green Accessibility Score, ranking and equity indicators per barri. "
                  "Data: Ajuntament de Barcelona - Open Data BCN (CC BY 4.0) and (c) OpenStreetMap contributors (ODbL)."))
 app.add_middleware(CORSMiddleware, allow_origins=CORS, allow_methods=["GET"], allow_headers=["*"])
@@ -49,7 +52,8 @@ def ready():
     rid = repo.store.latest_id()
     if rid is None:
         raise HTTPException(503, "no published run yet")
-    return {"status": "ready", "run_id": rid}
+    md = repo.store.metadata(rid) or {}
+    return {"status": "ready", "run_id": rid, "data_age_days": data_age_days(md.get("finished_utc"))}
 
 
 @app.get("/v1/meta", tags=["metadata"], summary="Live run, sources, parameters, attribution")
@@ -70,10 +74,11 @@ def stats():
 @app.get("/v1/barris", tags=["barris"], summary="List / filter / sort barris")
 def list_barris(district: str | None = None, tier: str | None = Query(None, description="Very low | Low | Medium | High | Very high"),
                 min_score: float | None = None, max_score: float | None = None, low_income: bool | None = None,
+                near_natural_park: bool | None = Query(None, description="barris where most residents live next to the excluded natural park"),
                 q: str | None = Query(None, description="name contains"),
                 sort: str = "access_rank", order: str = "asc",
                 limit: int = Query(100, ge=1, le=500), offset: int = Query(0, ge=0)):
-    return _call(repo.list_barris, district, tier, min_score, max_score, low_income, q, sort, order, limit, offset)
+    return _call(repo.list_barris, district, tier, min_score, max_score, low_income, q, sort, order, limit, offset, near_natural_park)
 
 
 @app.get("/v1/barris/{code}", tags=["barris"], summary="One barri with all metrics and its district peers")
@@ -100,4 +105,6 @@ def geojson(props: str | None = Query(None, description="comma-separated propert
 
 @app.get("/v1/layers/{name}", tags=["geo"], summary="Context layers: green | stations (GeoJSON, WGS84)")
 def layer(name: str):
+    if name == "green" and not EXPOSE_GREEN_LAYER:
+        raise HTTPException(404, "this layer is not published by this deployment")
     return _call(repo.layer, name)

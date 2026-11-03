@@ -50,3 +50,8 @@ def test_official_source_filters_are_parsed():
                                                    "where": {"TIPUS": ["Parc"]}, "exclude": {"X": ["y"]}}]})
     o = c.sources.official_polygons[0]
     assert o.layers == ["parcs"] and o.where == {"TIPUS": ["Parc"]} and o.exclude == {"X": ["y"]}
+
+
+def test_exclusion_context_defaults():
+    e = make_cfg().green.exclusion
+    assert e.context_dist_m == 500 and e.flag_share == 0.5

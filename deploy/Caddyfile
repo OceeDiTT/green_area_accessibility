@@ -1,0 +1,24 @@
+# Reverse proxy: automatic HTTPS (Let's Encrypt) when SITE_ADDRESS is a domain, plain HTTP when it is ":80"
+{$SITE_ADDRESS::80} {
+	encode zstd gzip
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	redir /api /api/docs 302
+	handle_path /api/* {
+		reverse_proxy api:8000
+	}
+
+	handle {
+		# Optional password for the dashboard: generate a hash with  `docker run --rm caddy caddy hash-password`
+		# and uncomment (the API stays open; protect it the same way if needed).
+		# basic_auth {
+		#	team  <paste-bcrypt-hash-here>
+		# }
+		reverse_proxy dashboard:8501
+	}
+}

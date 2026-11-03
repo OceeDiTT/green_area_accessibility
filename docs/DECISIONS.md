@@ -26,3 +26,8 @@ ranked near the top. Found by sanity-checking the first published run. Fixes: so
 file name and filtered; new checks `unit_cover_plausible` (warn > 70 %) and `unit_cover_sane` (**reject** > 90 %);
 `greenspace explore-official` shows what a file contains before it is used. Rule going forward: *inspect every new source with
 `explore-official` and review the per-barri results before publishing.*
+
+**2026-11-02 – Collserola-edge barris.** With Collserola excluded (decision 3), Vallvidrera/Tibidabo/les Planes ranks last and Torre Baró 68th although
+their residents live next to a very large natural park. The score and ranking are unchanged (as approved). A context indicator was added:
+`natural_park_share` (share of residents within 500 m of the excluded park) and `near_natural_park` (>= 50 %), shown next to the score in the
+API (`?near_natural_park=true`) and flagged in the dashboard. It does not enter the score, the ranking or the priority index.

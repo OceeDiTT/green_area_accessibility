@@ -49,6 +49,8 @@ class Exclusion:
     required: bool = True
     name_patterns: list = field(default_factory=lambda: ["collserola"])
     osm_tags: dict = field(default_factory=lambda: {"boundary": ["protected_area"], "leisure": ["nature_reserve"]})
+    context_dist_m: float = 500        # context indicator: share of residents within this distance of the excluded natural park
+    flag_share: float = 0.5            # a unit is flagged 'near_natural_park' when at least this share of its residents are that close
 
 
 @dataclass

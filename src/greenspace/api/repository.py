@@ -1,8 +1,10 @@
 """Read-side data access for the API. Pure pandas/json (no geo libraries), so the API image stays small."""
 import json
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from ..schema import EXPORT_COLS, MAP_METRICS, TIERS
@@ -10,6 +12,17 @@ from ..stats import district_summary
 from ..store import RunStore
 
 SORTABLE = set(MAP_METRICS) | {"barri", "district", "barri_code"}
+
+
+def data_age_days(finished_utc, now=None):
+    """Age of the live data in days (for freshness monitoring); None if unknown."""
+    try:
+        d = datetime.fromisoformat(str(finished_utc))
+    except (TypeError, ValueError):
+        return None
+    if d.tzinfo is None:
+        d = d.replace(tzinfo=timezone.utc)
+    return round(max(0.0, ((now or datetime.now(timezone.utc)) - d).total_seconds() / 86400), 1)
 
 
 class NoRunAvailable(RuntimeError):
@@ -49,7 +62,11 @@ class Repository:
             df = self.store.load_table(rid)
             if df is None:
                 raise NoRunAvailable(f"Run {rid} has no barris.csv")
+            for col, default in (("natural_park_share", np.nan), ("near_natural_park", False)):   # runs made before these columns existed
+                if col not in df.columns:
+                    df[col] = default
             df["low_income"] = df["low_income"].astype(bool)
+            df["near_natural_park"] = df["near_natural_park"].fillna(False).astype(bool)
             df["meets_who_target"] = df["meets_who_target"].astype(bool)
             checks_p = self.store.path(rid) / "checks.json"
             self._cache = RunData(rid, df, self.store.metadata(rid) or {},
@@ -71,7 +88,9 @@ class Repository:
         m = d.metadata
         cfg = m.get("config", {})
         return {"run_id": d.run_id, "city": m.get("city"), "status": m.get("status"),
-                "finished_utc": m.get("finished_utc"), "software_version": m.get("software_version"),
+                "started_utc": m.get("started_utc"), "finished_utc": m.get("finished_utc"), "duration_s": m.get("duration_s"),
+                "data_age_days": data_age_days(m.get("finished_utc")),
+                "software_version": m.get("software_version"),
                 "checks_summary": m.get("checks_summary"), "attribution": m.get("attribution"),
                 "sources": m.get("sources"),
                 "parameters": {"weights": cfg.get("scoring", {}).get("weights"),
@@ -87,7 +106,7 @@ class Repository:
         return self.load().checks
 
     def list_barris(self, district=None, tier=None, min_score=None, max_score=None, low_income=None, q=None,
-                    sort="access_rank", order="asc", limit=100, offset=0) -> dict:
+                    sort="access_rank", order="asc", limit=100, offset=0, near_natural_park=None) -> dict:
         df = self.load().df
         if sort not in SORTABLE:
             raise ValueError(f"sort must be one of {sorted(SORTABLE)}")
@@ -105,6 +124,8 @@ class Repository:
             df = df[df["access_score"] <= max_score]
         if low_income is not None:
             df = df[df["low_income"] == low_income]
+        if near_natural_park is not None:
+            df = df[df["near_natural_park"] == near_natural_park]
         if q:
             df = df[df["barri"].str.casefold().str.contains(q.casefold(), regex=False)]
         df = df.sort_values(sort, ascending=(order == "asc"), kind="stable")

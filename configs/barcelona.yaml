@@ -38,6 +38,8 @@ green:                                              # APPROVED: parks = hybrid o
     osm_tags:
       boundary: [protected_area]
       leisure: [nature_reserve]
+    context_dist_m: 500                             # context only - does NOT change the score or the ranking
+    flag_share: 0.5
 
 standards:                                          # APPROVED
   near_dist_m: 300

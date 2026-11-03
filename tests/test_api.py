@@ -39,3 +39,13 @@ def test_endpoints_with_data(client):
     assert c.get("/v1/ranking", params={"by": "priority", "limit": 5}).json()[0]["priority_rank"] == 1
     assert c.get("/v1/geojson", params={"props": "access_score"}).json()["features"][0]["properties"]["access_score"] is not None
     assert c.get("/v1/districts").status_code == 200 and c.get("/v1/meta").json()["city"] == "Barcelona"
+
+
+def test_ready_reports_data_age_and_layer_switch(client, monkeypatch):
+    c, tmp = client
+    write_run(tmp)
+    assert c.get("/ready").json()["data_age_days"] >= 0
+    monkeypatch.setenv("EXPOSE_GREEN_LAYER", "false")
+    import greenspace.api.app as app_module
+    c2 = TestClient(importlib.reload(app_module).app)
+    assert c2.get("/v1/layers/green").status_code == 404

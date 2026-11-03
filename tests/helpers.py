@@ -30,7 +30,8 @@ def make_frame(n=73, seed=0) -> pd.DataFrame:
         "green_cover_pct": green / area * 100, "pop_density_km2": pop / (area / 1e6), "green_m2_pp": green / pop,
         "people_per_1000m2_green": pop / (green / 1000), "income_eur_pc": inc,
         "n_stations": rng.integers(0, 5, n),
-        "share_300m_05ha": rng.uniform(0.2, 1, n), "share_1km_5ha": rng.uniform(0.1, 1, n)})
+        "share_300m_05ha": rng.uniform(0.2, 1, n), "share_1km_5ha": rng.uniform(0.1, 1, n),
+        "natural_park_share": np.where(np.arange(n) < 5, 0.9, 0.0)})
     w = np.average(inc, weights=pop)
     df["rfd_index"] = inc / w * 100
     df["low_income"] = df["rfd_index"] < 75
