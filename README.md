@@ -1,13 +1,13 @@
 # Green Space Accessibility — Barcelona
 
-**A reproducible, API-driven data product that measures how well each of Barcelona's 73 barris can actually *reach* green space — and shows where new green space would help the most people.**
+**A reproducible, API-driven data product that measures how well each of Barcelona's 73 barris residents can actually reach green space and shows where new green space would help the most people.**
 
 [![Live dashboard](https://img.shields.io/badge/live-dashboard-2ea44f?logo=streamlit&logoColor=white)](https://barca-green-area-accessibility.streamlit.app)
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776ab?logo=python&logoColor=white)](#getting-started)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Data: CC BY 4.0 + ODbL](https://img.shields.io/badge/data-CC%20BY%204.0%20%2B%20ODbL-lightgrey)](#data-sources--attribution)
 
-**▶ Try it: [barca-green-area-accessibility.streamlit.app](https://barca-green-area-accessibility.streamlit.app)**
+**Try it: [barca-green-area-accessibility.streamlit.app](https://barca-green-area-accessibility.streamlit.app)**
 
 <p align="center">
   <img src="docs/images/overview.png" alt="Dashboard overview: key indicators and an accessibility-score map of Barcelona's 73 barris" width="95%">
