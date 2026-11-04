@@ -105,7 +105,7 @@ or enable the `basic_auth` block in `deploy/Caddyfile`.
       and © OpenStreetMap contributors (ODbL). Keep it.
 - [ ] **OpenStreetMap share-alike:** the green-space polygons are built from OpenStreetMap, and `/api/v1/layers/green` publishes them.
       If you do not want to offer a derived OSM database under the ODbL, set `EXPOSE_GREEN_LAYER=false` (the dashboard does not need it).
-- [ ] **Code licence:** none chosen yet. Pick one (e.g. MIT / Apache-2.0) before publishing the repository.
+- [x] **Code licence:** MIT (`LICENSE`). Replace `<YOUR NAME>` in that file. The data keep their own licences (CC BY 4.0, ODbL).
 
 **Content**
 - [ ] A domain expert (urban planner / GIS) has reviewed the method and the ranking of the 10 best and 10 worst barris

@@ -120,5 +120,5 @@ labels in the config.
 
 ## Attribution & licences
 Ajuntament de Barcelona – Open Data BCN (CC BY 4.0); © OpenStreetMap contributors (ODbL, share-alike applies to
-derived OSM databases). Keep the attribution in `/v1/meta` visible in any public deployment. Source code: no licence
-chosen yet.
+derived OSM databases). Keep the attribution in `/v1/meta` visible in any public deployment. Source code: MIT (see `LICENSE`). The
+data keep their own licences (above); the MIT licence covers the code only.

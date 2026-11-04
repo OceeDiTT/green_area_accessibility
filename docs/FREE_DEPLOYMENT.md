@@ -24,7 +24,7 @@ in `docs/DEPLOYMENT.md` if you later get a server.
 ### 1. Create the public repository
 1. Create a free **GitHub** account (if you do not have one) and a **new public repository**, e.g. `barcelona-green-access`.
    Streamlit's free tier requires the repository to be public. The repository holds only code and open data (no secrets).
-2. Decide on a code licence and add a `LICENSE` file (e.g. MIT) before publishing.
+2. The project ships with an MIT `LICENSE` file. Open it and replace `<YOUR NAME>` with your name (or organisation) before you push.
 
 ### 2. Publish your current data from your PC
 You already have a validated run, so the dashboard can go live straight away:
@@ -59,6 +59,10 @@ git push -u origin main
 
 The app finds no `API_URL`, so it reads `published/` directly. Dependencies come from `requirements.txt`.
 
+> **Important:** the repository root must **not** contain an `environment.yml` (conda), `Pipfile` or `poetry.lock`. If several dependency
+> files exist, Streamlit picks one by its own priority (conda first), and a heavy conda file makes the build run for ~45 minutes and fail.
+> Keep a local conda file under another name, e.g. `conda-environment.yml`.
+
 ### 5. Switch on the monthly refresh
 1. Repository → **Settings → Actions → General → Workflow permissions** → *Read and write permissions* → Save.
 2. Repository → **Actions** tab → enable workflows if asked.
@@ -90,3 +94,12 @@ From then on it runs by itself at 03:17 UTC on the 1st of every month.
 ## Fallback if you hit a limit (or want no sleeping at all)
 A **static dashboard on GitHub Pages** (pure HTML + JavaScript reading the same `published/` files). It never sleeps, has no memory limit and needs no card;
 the cost is that the dashboard must be rewritten in JavaScript. Ask for it if you want it.
+
+## Troubleshooting (Streamlit Community Cloud)
+| Symptom in *Manage app* logs | Cause / fix |
+|---|---|
+| `More than one requirements file detected ... Used: conda with environment.yml`, a very long "Solving environment", then `Error during processing dependencies` | A conda `environment.yml` is in the repository. Rename it (`git mv environment.yml conda-environment.yml`), push, then *Reboot app* |
+| `streamlit: ERROR (spawn error)` / `error restarting streamlit` | Follows a failed dependency install: fix the dependencies first |
+| `ModuleNotFoundError: No module named ...` | Add the package to `requirements.txt` and push |
+| The app opens with "No published data yet" | The `published/` folder is missing from the repository: run `greenspace publish`, `git add published`, commit and push |
+| Wrong Python version | The version is chosen when the app is created (Advanced settings). Delete the app and create it again with Python 3.12 |

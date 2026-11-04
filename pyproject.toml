@@ -7,6 +7,7 @@ name = "greenspace"
 version = "0.1.0"
 description = "Urban green space accessibility scoring, ranking and publishing pipeline (Barcelona first)."
 requires-python = ">=3.10"
+license = { text = "MIT" }
 dependencies = ["pandas>=2.2", "numpy>=1.26", "pyyaml>=6", "requests>=2.31"]
 
 [project.optional-dependencies]
