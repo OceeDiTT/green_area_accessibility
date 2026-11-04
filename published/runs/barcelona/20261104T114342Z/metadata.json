@@ -1,40 +1,40 @@
 {
-  "run_id": "20261103T001655Z",
+  "run_id": "20261104T114342Z",
   "city": "Barcelona",
   "slug": "barcelona",
   "software_version": "0.1.0",
   "status": "published",
-  "started_utc": "2026-11-03T00:16:55+00:00",
-  "finished_utc": "2026-11-03T00:17:37+00:00",
-  "duration_s": 42.1,
+  "started_utc": "2026-11-04T11:43:42+00:00",
+  "finished_utc": "2026-11-04T11:44:32+00:00",
+  "duration_s": 49.2,
   "steps": [
     {
       "step": "boundaries",
-      "seconds": 7.0
+      "seconds": 7.2
     },
     {
       "step": "income",
-      "seconds": 5.7
+      "seconds": 5.8
     },
     {
       "step": "population",
-      "seconds": 6.0
+      "seconds": 6.1
     },
     {
       "step": "osm_green",
-      "seconds": 0.2
+      "seconds": 1.2
     },
     {
       "step": "official_green",
-      "seconds": 3.5
+      "seconds": 2.4
     },
     {
       "step": "exclusion_zone",
-      "seconds": 0.0
+      "seconds": 0.2
     },
     {
       "step": "green_layer",
-      "seconds": 5.8
+      "seconds": 1.6
     },
     {
       "step": "register_crosscheck",
@@ -42,15 +42,15 @@
     },
     {
       "step": "stations",
-      "seconds": 0.0
+      "seconds": 0.1
     },
     {
       "step": "unit_metrics",
-      "seconds": 0.6
+      "seconds": 0.2
     },
     {
       "step": "proximity",
-      "seconds": 6.9
+      "seconds": 18.4
     },
     {
       "step": "scoring",
@@ -62,78 +62,73 @@
     }
   ],
   "checks_summary": {
-    "pass": 19,
-    "warn": 0,
+    "pass": 17,
+    "warn": 1,
     "fail": 0
   },
   "stats": {
     "units": 73,
     "population": 1660435,
-    "area_km2": 101.70228717786806,
-    "green_km2": 10.53165971220357,
-    "green_cover_pct": 10.355381382706422,
-    "green_m2_per_capita_city": 6.342711224590887,
+    "area_km2": 101.70228717786718,
+    "green_km2": 9.96235670237486,
+    "green_cover_pct": 9.795607334721677,
+    "green_m2_per_capita_city": 5.999847451044372,
     "who_target_m2_pp": 9,
-    "units_below_who_target": 57,
-    "pop_share_below_who_target": 0.8654551367563319,
-    "pop_weighted_share_300m_05ha": 0.7402247277585273,
-    "estimated_residents_without_300m_access": 431340,
-    "mean_access_score_pop_weighted": 49.02691316130481,
+    "units_below_who_target": 58,
+    "pop_share_below_who_target": 0.8746485107818132,
+    "pop_weighted_share_300m_05ha": 0.6910491522349503,
+    "estimated_residents_without_300m_access": 512993,
+    "mean_access_score_pop_weighted": 46.98292969140551,
     "low_income_units": 16,
     "units_near_natural_park": 8,
     "population_near_natural_park": 62119,
-    "spearman_income_vs_green_per_capita": -0.06293965198074784,
-    "spearman_income_vs_access_score": -0.04081821547574972,
-    "median_rank_range90": 5.0,
+    "spearman_income_vs_green_per_capita": -0.024836480315932385,
+    "spearman_income_vs_access_score": -0.0016660496112550756,
+    "median_rank_range90": 6.0,
     "equity_by_income_quartile": [
       {
         "quartile": "Q1 (lowest income)",
         "units": 19,
         "population": 320987,
-        "median_green_m2_pp": 4.128334782352681,
-        "mean_green_cover_pct": 10.145481501786419,
-        "mean_access_score": 51.97806084422746
+        "median_green_m2_pp": 3.54823427721495,
+        "mean_green_cover_pct": 8.827226557510912,
+        "mean_access_score": 47.56132015687718
       },
       {
         "quartile": "Q2",
         "units": 18,
         "population": 346269,
-        "median_green_m2_pp": 4.050805199429256,
-        "mean_green_cover_pct": 12.259542203083042,
-        "mean_access_score": 55.693069390672356
+        "median_green_m2_pp": 3.830585476740027,
+        "mean_green_cover_pct": 11.108355022526213,
+        "mean_access_score": 54.77867505267357
       },
       {
         "quartile": "Q3",
         "units": 18,
         "population": 519141,
-        "median_green_m2_pp": 2.198402946746104,
-        "mean_green_cover_pct": 12.271504621397689,
-        "mean_access_score": 48.05762146845747
+        "median_green_m2_pp": 2.0082276708989455,
+        "mean_green_cover_pct": 11.76041838471193,
+        "mean_access_score": 46.67742603845799
       },
       {
         "quartile": "Q4 (highest income)",
         "units": 18,
         "population": 474038,
-        "median_green_m2_pp": 2.6522032884433604,
-        "mean_green_cover_pct": 9.717720617492912,
-        "mean_access_score": 43.22070303897558
+        "median_green_m2_pp": 2.520795681318824,
+        "mean_green_cover_pct": 9.152479144365698,
+        "mean_access_score": 41.23132053993146
       }
     ]
   },
   "green_layer": {
-    "osm_km2": 10.06133908662819,
-    "official_km2": 4.448928648100578,
-    "official_by_layer_km2": {
-      "public_green_over_half_ha": 4.448928648100579
-    },
-    "combined_before_exclusion_km2": 10.634664676745786,
-    "excluded_km2": 0.02651525075391703,
-    "final_km2": 10.531659181432438,
-    "patches": 2479,
-    "exclusion_zone_found": true,
-    "osm_only_km2": 6.185736029410494,
-    "official_only_km2": 0.5733255901174942,
-    "official_share_also_in_osm": 0.8711317632935403
+    "osm_km2": 10.061339086628154,
+    "official_km2": 0.0,
+    "official_by_layer_km2": {},
+    "combined_before_exclusion_km2": 10.061339086628156,
+    "excluded_km2": 0.02127478105758307,
+    "final_km2": 9.962356181726713,
+    "patches": 2559,
+    "exclusion_zone_found": true
   },
   "sources": {
     "boundaries": {
@@ -175,21 +170,7 @@
     },
     "official_polygons": {
       "public_green_over_half_ha": {
-        "package": "espais-verds-publics",
-        "resource": "2019_pev_parcs_od.gpkg",
-        "url": "https://opendata-ajuntament.barcelona.cat/data/dataset/eb3f3acc-e4e9-42b5-b41a-8e779b718a41/resource/83430f08-0626-4fb3-8695-db87da8eac07/download/pev_parcs_od.gpkg",
-        "polygons_in_file": 190,
-        "polygons_kept": 188,
-        "filters": {
-          "layers": [],
-          "where": {},
-          "exclude": {
-            "rao_no_fet": [
-              "Privat",
-              "Obres"
-            ]
-          }
-        }
+        "error": "HTTPError: 403 Client Error: Forbidden for url: https://opendata-ajuntament.barcelona.cat/data/dataset/eb3f3acc-e4e9-42b5-b41a-8e779b718a41/resource/83430f08-0626-4fb3-8695-db87da8eac07/download/pev_parcs_od.gpkg"
       }
     },
     "exclusion_zone": {
@@ -216,7 +197,7 @@
     },
     "resident_sampling": {
       "method": "buildings",
-      "points": 64833,
+      "points": 64884,
       "grid_filled_units": [],
       "units_without_points": []
     }

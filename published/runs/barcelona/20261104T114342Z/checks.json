@@ -32,7 +32,7 @@
   {
     "name": "city_green_cover",
     "status": "pass",
-    "detail": "10.4% (expected 3-40%)"
+    "detail": "9.8% (expected 3-40%)"
   },
   {
     "name": "unit_cover_bounds",
@@ -66,8 +66,8 @@
   },
   {
     "name": "official_polygons",
-    "status": "pass",
-    "detail": "official polygon layers contribute 4.45 km\u00b2"
+    "status": "warn",
+    "detail": "official polygon layers contribute 0.00 km\u00b2"
   },
   {
     "name": "sampling_method",
@@ -77,7 +77,7 @@
   {
     "name": "sample_points",
     "status": "pass",
-    "detail": "64,833 resident sample points (buildings)"
+    "detail": "64,884 resident sample points (buildings)"
   },
   {
     "name": "units_with_points",
@@ -88,10 +88,5 @@
     "name": "units_grid_filled",
     "status": "pass",
     "detail": "0 units had no building footprints; residents sampled on a grid there: "
-  },
-  {
-    "name": "rank_drift",
-    "status": "pass",
-    "detail": "mean rank shift vs previous run 0.0 (max 0); limit 8"
   }
 ]
