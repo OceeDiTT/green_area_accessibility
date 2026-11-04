@@ -1,124 +1,241 @@
-# Green Space Accessibility System — Barcelona
+# Green Space Accessibility — Barcelona
 
-Turns open data (Open Data BCN + OpenStreetMap, all via API) into a **Green Accessibility Score and ranking for the
-73 barris of Barcelona**, an investment **priority index**, equity indicators, a REST API and a dashboard. It is the
-production version of the approved experiment notebook (`notebooks/`), which itself re-implemented the Chicago Green
-Area Analysis (NOVA IMS, 2025).
+**A reproducible, API-driven data product that measures how well each of Barcelona's 73 barris can actually *reach* green space — and shows where new green space would help the most people.**
 
-## Verification status — read this first
+[![Live dashboard](https://img.shields.io/badge/live-dashboard-2ea44f?logo=streamlit&logoColor=white)](https://barca-green-area-accessibility.streamlit.app)
+[![Python](https://img.shields.io/badge/python-3.10%2B-3776ab?logo=python&logoColor=white)](#getting-started)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Data: CC BY 4.0 + ODbL](https://img.shields.io/badge/data-CC%20BY%204.0%20%2B%20ODbL-lightgrey)](#data-sources--attribution)
 
-| Part | Status |
+**▶ Try it: [barca-green-area-accessibility.streamlit.app](https://barca-green-area-accessibility.streamlit.app)**
+
+<p align="center">
+  <img src="docs/images/overview.png" alt="Dashboard overview: key indicators and an accessibility-score map of Barcelona's 73 barris" width="95%">
+</p>
+
+---
+
+## Contents
+[Why this project](#why-this-project) · [Key results](#key-results) · [How it works](#how-it-works) · [Engineering highlights](#engineering-highlights) · [Architecture & deployment](#architecture--deployment) · [Tech stack](#tech-stack) · [Getting started](#getting-started) · [REST API](#rest-api) · [Data-quality gate](#data-quality-gate) · [Project structure](#project-structure) · [Testing](#testing) · [Limitations & roadmap](#limitations--roadmap) · [Data sources & attribution](#data-sources--attribution) · [License](#license)
+
+---
+
+## Why this project
+
+Barcelona is one of Europe's densest cities, and "how much green space does it have?" is a question with many wrong answers. A city-wide average hides the fact that a barri can contain a huge park and still leave most of its residents far from any green space. This project answers a more useful question:
+
+> **Can the people who live in each barri reach a good green space on foot — and who is being left behind?**
+
+It turns open data into a transparent, repeatable **Green Accessibility Score (0–100)** for every barri, a **ranking**, an **investment-priority index**, and an **equity view** that overlays household income — all refreshed automatically from public APIs, with no manual data wrangling.
+
+## Key results
+
+*Figures from the November 2026 run; the live dashboard refreshes monthly.*
+
+| Indicator | Value |
 |---|---|
-| Pipeline on live data (Open Data BCN + Overpass), quality gate, API, dashboard | **Run end to end on a Windows/conda machine**; results sanity-checked (best/worst barris, Collserola edge) |
-| Unit and integration tests | **69 tests**, incl. geospatial and API tests (run with `pytest -q`) |
-| **Docker images and the production stack in `deploy/`** | **Not yet built or run** — do Step 1 of `docs/DEPLOYMENT.md` first |
-| Pipeline memory use, rate limiting, login | Not measured / not implemented (see `docs/DEPLOYMENT.md`, "Known gaps") |
+| Green space per inhabitant | **6.3 m²** (guide value: 9 m²) |
+| Green coverage of the city | **10.4 %** |
+| Barris below the 9 m² guide value | **57 of 73** |
+| Residents with no ≥ 0.5 ha green space within 300 m *(estimate)* | **≈ 431,000** |
 
-The pipeline refuses to publish a run that fails its quality checks, so a bad run cannot reach the API or dashboard.
+| Best-accessibility barris | Score | | Lowest-accessibility barris | Score |
+|---|---|---|---|---|
+| Diagonal Mar i el Front Marítim del Poblenou | 99 | | Vallvidrera, el Tibidabo i les Planes ¹ | 1 |
+| el Poble-sec | 96 | | l'Antiga Esquerra de l'Eixample | 11 |
+| el Coll | 87 | | la Dreta de l'Eixample | 14 |
+| la Guineueta | 85 | | el Camp d'en Grassot i Gràcia Nova | 16 |
+| la Vila Olímpica del Poblenou | 83 | | Sant Antoni | 19 |
 
-## Deploying
-**Free and cashless:** `docs/FREE_DEPLOYMENT.md` (GitHub Actions + Streamlit Community Cloud, no server). Server with Docker: **`docs/DEPLOYMENT.md`**: test the containers locally → rent a small VM + domain → `make prod-up` → monitoring, backups, legal checklist.
+¹ *Collserola natural park is deliberately **not** counted as green space, so barris on its edge score low. They are flagged in the dashboard ("score excludes adjacent natural park") rather than silently re-ranked.*
 
-## Architecture
+**Highest investment priority** (low access × high density × lower income): el Raval, Verdun, el Camp d'en Grassot i Gràcia Nova, Sant Antoni, el Barri Gòtic.
+
+**Equity:** across barris there is essentially no linear relationship between income and green space per inhabitant (rank correlation ≈ −0.06). By income quartile, median green space per inhabitant is 4.1 m² (lowest-income) and 4.1 m² (Q2) against 2.2 m² and 2.7 m² for the upper two quartiles. *(Descriptive statistics only — they show where green space is scarce, not why.)*
+
+<p align="center">
+  <img src="docs/images/priorities.png" alt="Priority ranking table and map" width="48%">
+  <img src="docs/images/profile.png" alt="Barri Profile" width="48%">
+  <img src="docs/images/equity.png" alt="Income vs green space per inhabitant" width="48%">
+</p>
+
+## How it works
+
+```mermaid
+flowchart LR
+    A["Open Data BCN<br/>(CKAN API)"] --> P
+    B["OpenStreetMap<br/>(Overpass API)"] --> P
+    P["Pipeline<br/>fuse · measure · score"] --> Q{"Quality gate<br/>19 automated checks"}
+    Q -- pass --> R[("Versioned run<br/>published atomically")]
+    Q -- fail --> X["Run rejected,<br/>kept for diagnosis"]
+    R --> D["Dashboard"]
+    R --> API["REST API"]
+```
+
+**1. Collect — everything via API, nothing downloaded by hand.**
+Barri boundaries, municipal population (Padró), household income per capita and the city's official green-space polygons come from the **Open Data BCN CKAN API**. Parks, gardens, rail stations, building footprints and the Collserola natural-park boundary come from the **OpenStreetMap Overpass API**.
+
+**2. Build one trustworthy green-space layer.**
+OSM polygons and the city's official polygons are merged and **dissolved** (no double counting), the Collserola natural park is subtracted, and the result is cross-checked against the city's park register.
+
+**3. Measure access, not just supply.**
+Residents are located using **66,000+ building footprints** (weighted by floor area) instead of assuming people live evenly across a barri. For every barri the pipeline measures:
+
+| Component | What it measures | Weight |
+|---|---|---|
+| Green space per inhabitant | m² of green per resident (winsorised 5–95 %) | 30 % |
+| Proximity | % of residents within **300 m** of a green space ≥ **0.5 ha** | 35 % |
+| Large-park access | % of residents within **1 km** of a green space ≥ **5 ha** | 15 % |
+| Coverage | % of the barri's area that is green | 20 % |
+
+→ weighted into the **Green Accessibility Score** and a rank (1 = best).
+
+**4. Prioritise.** The **priority index** combines access need (50 %), population density (25 %) and income need (25 %) to point at where an extra hectare would help the most people.
+
+**5. Test the result, not just the code.** Every rank comes with a **stability range** across 2,000 random re-weightings of the score components, so users can see which positions are robust and which depend on the weights.
+
+## Engineering highlights
+
+What makes this more than a notebook:
+
+- **Multi-source data fusion with provenance.** Five Open Data BCN datasets and four OpenStreetMap queries are combined; every run records exactly which resource, reference year and parameters produced each number (`metadata.json`).
+- **An automated data-quality gate that can reject a run.** 19 checks (unit counts, population totals, plausible green coverage per barri, agreement with the city park register, resident-sampling coverage, ranking drift vs. the previous run…). A failed run is kept for diagnosis and never served. *This gate exists because a real data error — a non-green dataset that made the historic centre look 100 % green — slipped through an earlier version.*
+- **Resilient by design.** Retries with exponential back-off and rotation across Overpass servers; API responses cached per query (keyed on the query parameters, with a max age); a clear failure instead of silently degrading to lower-quality sampling.
+- **Versioned, atomic publishing.** Each run is an immutable folder; a pointer file flips only after validation, so readers never see half-written data; one-line rollback.
+- **Reproducible and config-driven.** One validated YAML file defines sources, thresholds and weights; unknown keys are rejected; adding another city means writing a small data adapter, not touching the scoring engine.
+- **Sensitivity analysis built in.** Rank-stability bands (Monte-Carlo over weights) instead of pretending a ranking is exact.
+- **Equity-aware outputs.** Income overlay, bivariate map, income-quartile statistics.
+- **70+ automated tests**, including geospatial logic on synthetic geometries (green-layer merging, exclusion zones, proximity shares) and API contract tests.
+- **Zero-cost deployment** (see below) *and* a self-hosted Docker option.
+
+## Architecture & deployment
 
 ```
- Open Data BCN (CKAN API) ─┐                     ┌───────────────┐   data/runs/barcelona/
-   boundaries, population, ├─► greenspace run ──►│ quality gate  │──►  <run_id>/  barris.csv, barris.geojson,
-   income, park register,  │   (pipeline job)    │ (validate.py) │      green_patches.geojson, stations.geojson,
-   official green polygons │                     └──────┬────────┘      green_metrics.gpkg, metadata.json, checks.json
- OpenStreetMap (Overpass) ─┘                  pass: atomic rename        latest.json  → points at the live run
-   parks, stations, buildings,                fail: <run_id>.failed (never served)
-   Collserola boundary                                                          │ read-only volume
-                                                                                ▼
-                                                    REST API (FastAPI) ◄── Dashboard (Streamlit)
+ GitHub Actions (monthly)  ──►  greenspace run  ──►  greenspace publish  ──►  published/ snapshot (~1 MB, committed)
+                                                                                      │
+ Visitors  ──►  Streamlit Community Cloud  ◄── redeploys on every change, reads the snapshot directly
 ```
 
-* **Pipeline** (`greenspace run`): batch job. Raw API responses are cached (`data/cache`, 30 days, keyed by query).
-* **Run store**: each run is a folder; `latest.json` is switched atomically, so readers never see half-written data and
-  every published number is traceable (`metadata.json` holds sources, parameters, timings, checks).
-* **API**: read-only, no geo libraries, reloads automatically when a new run is published.
-* **Dashboard**: only calls the API.
-* **Why files instead of a database:** 73 rows per run. A DB would add operations without benefit. If you later add many
-  cities or need history queries, swap `store.py`/`repository.py` for PostGIS — nothing else depends on the storage.
+| Mode | Stack | Cost | Docs |
+|---|---|---|---|
+| **Serverless (live demo)** | GitHub Actions refreshes data monthly → snapshot committed to the repo → Streamlit Community Cloud serves the dashboard | **Free, no server, no card** | [`docs/FREE_DEPLOYMENT.md`](docs/FREE_DEPLOYMENT.md) |
+| **Self-hosted** | Docker Compose: Caddy (automatic HTTPS) → dashboard + read-only FastAPI, with a scheduler container refreshing the data | One small VM | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) |
 
-## Approved decisions (see `docs/DECISIONS.md`)
+The Docker option is provided and documented; the live demo uses the serverless mode.
 
-1. Score weights and thresholds as in the notebook: 0.30 / 0.35 / 0.15 / 0.20; 300 m & ≥0.5 ha; 1 km & ≥5 ha; 9 m²/person.
-2. **Parks = hybrid**: OSM polygons ∪ the city's official green polygons (dissolved: no double counting).
-3. **Collserola is not green space**: the natural-park polygon (found via OSM by name) is subtracted from the union;
-   the run **fails** if the zone cannot be found (`green.exclusion.required`).
-4. **Barri level** (73 units).
+## Tech stack
 
-## Quick start
+| Area | Tools |
+|---|---|
+| Geospatial & data | GeoPandas, Shapely, pyogrio, pandas, NumPy, OSMnx (Overpass), CKAN API |
+| Scoring & stats | winsorised min-max scaling, weighted composites, Dirichlet Monte-Carlo rank stability |
+| Backend | Python 3.10+, FastAPI, Uvicorn, typed dataclass configuration (YAML) |
+| Frontend | Streamlit, Plotly |
+| DevOps | pytest, Ruff, GitHub Actions, Docker (multi-stage), Docker Compose, Caddy |
 
-### A. Docker
+## Getting started
+
+### Run the dashboard on your machine (no data download needed)
 ```bash
-docker compose --profile jobs run --rm pipeline      # first data load (several minutes: buildings download)
-docker compose up -d api dashboard
-open http://localhost:8501        # dashboard      |   http://localhost:8000/docs   # API docs
-docker compose --profile scheduler up -d scheduler   # optional: refresh every 30 days
+git clone https://github.com/OceeDiTT/green_area_accessibility.git
+cd green_area_accessibility
+pip install -r requirements.txt
+streamlit run src/greenspace/dashboard/app.py          # reads the committed ./published snapshot
 ```
 
-### B. Local (conda-forge recommended for the geospatial stack)
+### Run the full pipeline (fetches live data, ~10 min the first time)
+The geospatial stack installs most reliably from conda-forge:
 ```bash
-conda create -n greenspace -c conda-forge python=3.12 geopandas osmnx pyogrio fastapi uvicorn streamlit plotly pytest httpx pyyaml
-conda activate greenspace && pip install -e . --no-deps
+conda create -n greenspace -c conda-forge python=3.12 geopandas osmnx pyogrio pytest httpx pyyaml fastapi uvicorn streamlit plotly
+conda activate greenspace
+pip install -e . --no-deps
+
 greenspace check-config          # validate configs/barcelona.yaml
-greenspace run                   # add --refresh to ignore cached API responses
-greenspace status
-greenspace serve &               # API on :8000
-API_URL=http://localhost:8000 streamlit run src/greenspace/dashboard/app.py
+greenspace run                   # fetch → fuse → score → quality gate → publish a versioned run
+greenspace status                # what is live
+greenspace publish               # export a small public snapshot to ./published
+greenspace serve                 # REST API on :8000   (interactive docs at /docs)
 ```
+Other commands: `greenspace schedule` (refresh when data is older than N days), `greenspace inspect --unit "<barri>"` and `greenspace explore-official` (data diagnostics).
 
-## Score, in one paragraph
-Four components, each 0–100: green m² per inhabitant (winsorised 5–95 %), % of residents within 300 m of a ≥0.5 ha
-green patch, % within 1 km of a ≥5 ha patch, % of the barri covered by green. Weighted mean = **access_score**;
-rank 1 = best. Residents are located by OSM building footprints (grid fallback). **priority_index** = 50 % access need +
-25 % population density + 25 % income need; rank 1 = most urgent. **rank_p05/p95** = the barri's rank range under 2,000
-random weightings around the approved weights (how much the ranking depends on the weights).
+### Configuration
+Everything tunable lives in [`configs/barcelona.yaml`](configs/barcelona.yaml): data sources, which official layers to use and how to filter them, the excluded natural park, distance/size standards, score weights, validation thresholds.
 
-## API (read-only)
+## REST API
+
+Read-only; served by `greenspace serve` or the Docker stack.
 
 | Endpoint | Purpose |
 |---|---|
-| `GET /health`, `GET /ready` | liveness / a published run exists (503 otherwise) |
-| `GET /v1/meta`, `/v1/quality` | live run, sources, parameters, attribution / quality checks |
-| `GET /v1/stats` | city indicators, equity by income quartile, green-layer composition |
-| `GET /v1/barris` | filter (`district`, `tier`, `min_score`, `max_score`, `low_income`, `q`), sort, page |
-| `GET /v1/barris/{code}` | one barri, all metrics + district peers |
-| `GET /v1/ranking?by=access\|priority&order=best\|worst&limit=` | top / bottom lists |
-| `GET /v1/districts` | district summary (population-weighted) |
-| `GET /v1/geojson?props=a,b` | polygons with metrics (WGS84) |
-| `GET /v1/layers/green\|stations` | context layers |
+| `GET /v1/barris` | list / filter (`district`, `tier`, `min_score`, `low_income`, `near_natural_park`, `q`) / sort / paginate |
+| `GET /v1/barris/{code}` | one barri with all metrics and its district peers |
+| `GET /v1/ranking?by=access\|priority` | best / worst lists |
+| `GET /v1/districts`, `/v1/stats` | district and city-wide indicators, equity by income quartile |
+| `GET /v1/geojson` | barri polygons (WGS84) with metrics as properties |
+| `GET /v1/meta`, `/v1/quality` | live run, sources, parameters, attribution, quality-check results |
+| `GET /health`, `/ready` | liveness / readiness (includes `data_age_days` for monitoring) |
 
-Interactive docs: `/docs`. Responses carry `Cache-Control: public, max-age=300`.
+## Data-quality gate
 
-## Quality gate (`validate.py`)
-Fails the run (nothing published): not 73 units, duplicate codes, missing population, population total or city green
-cover outside plausible ranges, invalid scores, **exclusion zone not found**, income missing for >20 % of units.
-Warns: population/income year gap > 2, OSM/city-register agreement < 80 %, official layers empty, few sample points,
-mean rank shift vs the previous run > 8. Details are in `checks.json` and `/v1/quality`.
+A run is published only if **no check fails**. A selection:
 
-## Configuration
-Everything tunable lives in `configs/barcelona.yaml` (typed and validated in `config.py`; unknown keys are rejected).
-Environment: `GREENSPACE_CONFIG`, `GREENSPACE_DATA_DIR`, `GREENSPACE_CITY`, `CORS_ORIGINS`, `API_URL`, `LOG_LEVEL`.
+| Severity | Examples |
+|---|---|
+| **Reject the run** | not exactly 73 units · duplicate codes · missing population · implausible city population or green coverage · **any barri above 90 % green** · invalid scores · excluded natural-park boundary not found |
+| **Warn** | population and income reference years more than 2 years apart · < 80 % agreement with the city park register · any barri above 70 % green · barris without building footprints · ranking drift vs. the previous run |
 
-## Adding another city
-Add `configs/<city>.yaml` and a source adapter `src/greenspace/sources/<adapter>.py` exposing `load_boundaries`,
-`load_income`, `load_population`, `load_register_points`, `load_official_polygons` (see `barcelona.py`), register it in
-`pipeline.ADAPTERS`. Scoring, validation, storage, API and dashboard are city-agnostic apart from the unit count and
-labels in the config.
+## Project structure
 
-## Known limitations
-* Straight-line distances (no walking network); green quality (canopy, amenities, opening hours) not assessed.
-* Income is a barri average → low-income residents inside rich barris are invisible.
-* Official polygon layers are dated (2019 files); OSM supplies recency, so check `green_layer` in `/v1/stats`
-  (OSM-only vs official-only area) after each run.
-* Whether the official layers contain Collserola parts is handled only through the OSM exclusion polygon.
-* Overpass can rate-limit or time out; cached data and retries mitigate this, a failed run simply leaves the previous
-  published run live.
+```
+configs/             city configuration (YAML)
+src/greenspace/
+  pipeline.py        orchestration: ingest → green layer → metrics → score → validate → publish
+  sources/           Open Data BCN (CKAN) and OpenStreetMap (Overpass) adapters
+  green.py           hybrid green-space layer, exclusion zone, register cross-check
+  metrics.py         per-barri supply and proximity metrics
+  scoring.py         accessibility score, priority index, rank stability (pure functions)
+  validate.py        data-quality gate
+  store.py           versioned, atomic run storage        publish.py   public snapshot export
+  api/               FastAPI app + data layer             dashboard/   Streamlit app + helpers
+  cli.py             `greenspace` command line            diagnose.py  data diagnostics
+tests/               unit, geospatial and API tests
+deploy/              Docker Compose + Caddy (self-hosted)
+.github/workflows/   CI and the monthly data refresh
+docs/                deployment guides, decision log, runbook
+notebooks/           exploratory prototype
+published/           latest public data snapshot (used by the live dashboard)
+```
 
-## Attribution & licences
-Ajuntament de Barcelona – Open Data BCN (CC BY 4.0); © OpenStreetMap contributors (ODbL, share-alike applies to
-derived OSM databases). Keep the attribution in `/v1/meta` visible in any public deployment. Source code: MIT (see `LICENSE`). The
-data keep their own licences (above); the MIT licence covers the code only.
+## Testing
+```bash
+pip install -e ".[pipeline,api,dashboard,dev]"
+pytest -q
+```
+Covers configuration validation, scoring and rank stability, the quality gate, run storage and rollback, the scheduler, retry/back-off, resource selection on the open-data portal, green-layer merging and exclusion on synthetic geometries, proximity shares, the API and the dashboard's data logic.
+
+## Limitations & roadmap
+
+**Known limitations** (also stated in the dashboard)
+- Distances are straight-line, not walking routes; green-space *quality* (tree canopy, amenities, safety) is not assessed.
+- Income is a barri average, so low-income residents of wealthier barris are invisible.
+- The city's official park layer dates from 2019; OpenStreetMap supplies recency (the dashboard reports how much each source contributes).
+- Collserola is excluded by design; barris on its edge are flagged but not re-scored.
+
+**Roadmap**
+- Walking-network (isochrone) distances · tree-canopy / NDVI quality layer · finer units (census sections or a hex grid)
+- Second city via a new source adapter · what-if scenarios ("add 1 ha here — how does the score change?")
+
+## Data sources & attribution
+
+- **Ajuntament de Barcelona — [Open Data BCN](https://opendata-ajuntament.barcelona.cat/)** (CC BY 4.0): barri boundaries, population, household income, public green-space polygons, park register.
+- **© [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors** (ODbL): parks and gardens, stations, building footprints, natural-park boundary, basemap.
+
+Results are modelled estimates intended for planning discussion, not official statistics.
+
+## License
+
+Code: [MIT](LICENSE). The data keep their own licences (above); the MIT licence covers the code only.
+
+## Author
+
+**Christian Oluoma** — geospatial data science & engineering · [LinkedIn](www.linkedin.com/in/oluomachristian) · [Medium](https://medium.com/@oluomachristiandigitrad)
